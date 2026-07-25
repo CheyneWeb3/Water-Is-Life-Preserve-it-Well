@@ -18,6 +18,9 @@ This means staking does not replace your existing rewards.
 
 It adds another reward layer.
 
+
+<img src="https://raw.githubusercontent.com/CheyneWeb3/Water-Is-Life-Preserve-it-Well/refs/heads/DevOps/Assets/01-concept-screens/desktop_final.png" alt="Conceptual App Idea Only" width="1100">
+
 ---
 
 # Hold WATER
