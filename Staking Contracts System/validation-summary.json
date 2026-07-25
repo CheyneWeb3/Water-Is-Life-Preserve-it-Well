@@ -1,17 +1,67 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "date": "2026-07-25",
-  "solidity": "0.8.19",
-  "openzeppelin": "4.5.0",
-  "staticChecks": {
-    "javascriptSyntax": "pass",
-    "solidityDelimiterBalance": "pass",
-    "pragmaPinned": "pass",
-    "oldMultiplierArchitectureRemoved": "pass",
-    "riskyConstructGrep": "pass"
+  "soliditySourceSanity": {
+    "contracts/WaterStakingController.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/WaterStakingVault.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/adapters/PancakeV2BnbWaterAdapter.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/interfaces/IBnbToWaterAdapter.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/interfaces/IWaterStakingController.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/mocks/MockBnbWaterAdapter.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    },
+    "contracts/mocks/MockWater.sol": {
+      "braces": true,
+      "parens": true,
+      "pragma_0_8_19": true
+    }
   },
-  "hardhatCompile": "not-run: npm install timed out",
-  "hardhatTests": "not-run: npm install timed out",
-  "productionReady": false,
-  "remainingGate": "real WATER token/dividend integration + compile/tests + independent audit"
+  "staticInvariants": {
+    "controller_v23_title": true,
+    "operator_role": true,
+    "owner_only_operator_appointment": true,
+    "maintenance_bounded": true,
+    "feature_flags": true,
+    "operator_no_reward_schedule": true,
+    "owner_only_shutdown": true,
+    "user_only_emergency_exit": true,
+    "emergency_destination_owner": true,
+    "bnb_claim_user_only": true,
+    "bnb_compound_user_only": true,
+    "bnb_feature_vault": true,
+    "bnb_feature_interface": true,
+    "no_delegatecall": true,
+    "no_selfdestruct": true,
+    "no_tx_origin": true,
+    "no_assembly": true,
+    "no_multiplier": true
+  },
+  "javascriptSyntax": {
+    "test": "passed via node --check",
+    "deploy": "passed via node --check"
+  },
+  "solidityCompile": "NOT RUN - npm install timed out in this environment",
+  "hardhatTests": "NOT RUN - dependencies unavailable"
 }

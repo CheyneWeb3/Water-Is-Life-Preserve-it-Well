@@ -19,15 +19,17 @@ function parseRoute(wbnb, water) {
 async function main() {
   const waterAddress = required("WATER_ADDRESS");
   const [deployer] = await ethers.getSigners();
+  const operatorAddress = process.env.OPERATOR_ADDRESS || deployer.address;
 
   const Controller = await ethers.getContractFactory("WaterStakingController");
-  const controller = await Controller.deploy(waterAddress);
+  const controller = await Controller.deploy(waterAddress, operatorAddress);
   await controller.waitForDeployment();
 
   const controllerAddress = await controller.getAddress();
   console.log("Deployer:", deployer.address);
   console.log("WATER:", waterAddress);
   console.log("Controller:", controllerAddress);
+  console.log("Operator:", await controller.operator());
   console.log("Vault implementation:", await controller.vaultImplementation());
   console.log("Flexible pool ID:", Number(await controller.FLEXIBLE_POOL()));
   console.log("Locked pool ID:", Number(await controller.LOCKED_POOL()));
@@ -67,11 +69,12 @@ async function main() {
 
   const network = await ethers.provider.getNetwork();
   const deployment = {
-    version: "2.2.0",
+    version: "2.3.0",
     chainId: Number(network.chainId),
     deployer: deployer.address,
     water: waterAddress,
     controller: controllerAddress,
+    operator: await controller.operator(),
     vaultImplementation: await controller.vaultImplementation(),
     pools: {
       flexible: Number(await controller.FLEXIBLE_POOL()),
@@ -82,7 +85,14 @@ async function main() {
     adapterChangeDelaySeconds: Number(await controller.ADAPTER_CHANGE_DELAY()),
     bnbWaterAdapter: adapterAddress,
     bnbWaterAdapterRoute: adapterRoute,
-    adapterApprovalExecuteAfter: adapterExecuteAfter
+    adapterApprovalExecuteAfter: adapterExecuteAfter,
+    features: {
+      flexibleStaking: await controller.flexibleStakingEnabled(),
+      lockedStaking: await controller.lockedStakingEnabled(),
+      relock: await controller.relockEnabled(),
+      waterCompounding: await controller.waterCompoundingEnabled(),
+      bnbCompounding: await controller.bnbCompoundingEnabled()
+    }
   };
 
   fs.mkdirSync(path.resolve(process.cwd(), "deployments"), { recursive: true });
@@ -94,7 +104,8 @@ async function main() {
   console.log("1. Reward funding is separate from deployment. Fund pool 0/1 with the chosen allocation (e.g. 35/65).");
   console.log("2. Call scheduleRewards(poolId, duration) for each funded pool.");
   console.log("3. If an adapter was proposed, executeSwapAdapterChange(adapter) only after the timelock has elapsed.");
-  console.log("4. Exclude the reward controller from WATER dividends if WATER's dividend tracker supports exclusions.");
+  console.log("4. Configure OPERATOR_ADDRESS as the server/automation signer; keep FINAL_OWNER as the high-security owner/multisig.");
+  console.log("5. Exclude the reward controller from WATER dividends if WATER's dividend tracker supports exclusions.");
 }
 
 main().catch((error) => {

@@ -28,6 +28,7 @@ contract WaterStakingVault {
     error WaterRecoveryForbidden();
     error EmergencyShutdownRequired();
     error EmergencyShutdownActive();
+    error BnbCompoundingDisabled();
 
     event BnbClaimed(address indexed owner, uint256 amount);
     event BnbCompounded(address indexed owner, address indexed adapter, uint256 bnbIn, uint256 waterOut);
@@ -124,6 +125,7 @@ contract WaterStakingVault {
         uint256 deadline
     ) external onlyOwner nonReentrant returns (uint256 waterOut) {
         if (IWaterStakingController(controller).emergencyShutdown()) revert EmergencyShutdownActive();
+        if (!IWaterStakingController(controller).bnbCompoundingEnabled()) revert BnbCompoundingDisabled();
 
         // Global daily rollover + user rollover happens before deciding which pool receives compounded WATER.
         IWaterStakingController(controller).syncPosition(owner);

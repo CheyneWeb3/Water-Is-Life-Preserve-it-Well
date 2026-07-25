@@ -1,5 +1,5 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "lock": {
     "minimumDays": 30,
     "expiryEpoch": "UTC daily boundary rounded up after 30 days"
@@ -13,5 +13,17 @@
   "operations": {
     "firstInteractionEachNewDay": "processes aggregate daily expiries",
     "subsequentInteractionsSameDay": "no daily expiry scan; normal reward checkpoint only"
+  },
+  "roles": {
+    "owner": "high-security owner/multisig: funding, reward schedules, adapters, recoveries, emergency shutdown, operator appointment",
+    "operator": "server automation: daily maintenance, bounded user sync batches, routine pause/unpause, feature switches; no user custody",
+    "user": "owns one permanent vault and exclusively controls BNB claims/compounds and emergency principal exit"
+  },
+  "featureDefaults": {
+    "flexibleStaking": true,
+    "lockedStaking": true,
+    "relock": true,
+    "waterCompounding": true,
+    "bnbCompounding": true
   }
 }

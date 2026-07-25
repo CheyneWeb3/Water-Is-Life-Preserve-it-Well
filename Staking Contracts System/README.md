@@ -1,52 +1,149 @@
-# WATER Dividend-Preserving Staking V2.2
+# WATER Dividend-Preserving Staking V2.3
 
 Solidity `0.8.19` / OpenZeppelin `4.5.0` staking system for a dividend-paying WATER token on EVM/BSC.
 
-## Canonical rules
+V2.3 keeps the V2.2 daily-epoch reward/expiry model and adds a strict three-layer authority model: **OWNER/MULTISIG**, **OPERATOR**, and **USER VAULT OWNER**.
+
+## Canonical staking rules
 
 - One permanent ERC-1167 vault per user.
-- User principal WATER stays in the user's vault, not in the controller.
+- User principal WATER stays in that user's vault, never in the staking controller.
 - The vault can receive native BNB dividends from WATER's existing dividend mechanism.
 - Two WATER reward pools only: `Flexible` and `Locked`.
-- Reward advantage comes from how the finite reward reserves are funded (for example 35/65). There are no staking multipliers.
-- Locked principal is locked for at least 30 days.
-- Expiry is rounded up to the next UTC daily epoch boundary, so a lock lasts 30-31 days and is never shorter than 30 days.
-- The first state-changing interaction in a new daily epoch performs the aggregate expiry check for that period.
-- Expiring Locked principal is moved economically to Flexible; WATER never moves between contracts during rollover.
-- Individual user records are synchronized lazily against the stored daily boundary snapshot.
-- Locked users can claim WATER, claim BNB, compound WATER, compound BNB, or partially do any of those during the lock.
-- Compounding does not extend the current lock.
-- Fresh wallet WATER added to an active lock restarts the whole position's lock.
-- After expiry the user can remain Flexible, withdraw, or explicitly re-lock.
+- The reward advantage comes from funding the two finite reward reserves differently, e.g. 35/65. There are no staking multipliers.
+- Locked principal is locked for at least 30 days and expires at the next UTC daily epoch boundary after 30 days.
+- At expiry, the position moves economically from Locked to Flexible without moving WATER out of the user's vault.
+- Locked users may claim WATER, claim BNB, compound WATER, compound BNB, or partially claim/compound during the lock.
+- Compounding rewards never extends the current lock.
+- Fresh wallet WATER added to an active Locked position restarts the entire position for a new 30-day term.
+- After expiry the user may stay Flexible, withdraw, or explicitly re-lock.
 
-## Daily expiry model
+## Authority model
 
-`expiringLockedByEpoch[epoch]` stores only the aggregate WATER amount expiring on a UTC day boundary.
+### OWNER / MULTISIG
 
-On the first interaction in a new epoch:
+High-security governance only:
 
-1. The controller checks daily epochs since the last processed epoch.
-2. Empty days cost only a mapping read.
-3. If an epoch has expiring WATER, both reward pools are checkpointed exactly at that boundary.
-4. The aggregate amount is removed from Locked `totalStaked` and added to Flexible `totalStaked`.
-5. The Locked/Flexible reward-per-token snapshot for that boundary is stored permanently for lazy user settlement.
-6. Reward pools are then updated to the current transaction timestamp.
+- appoint/revoke the OPERATOR;
+- fund Flexible/Locked reward reserves;
+- schedule reward emissions;
+- propose/cancel BNB->WATER adapter changes;
+- recover only excess/unrelated controller assets;
+- activate irreversible emergency shutdown;
+- transfer contract ownership.
 
-Because every new/restarted lock first synchronizes the current epoch and a lock can expire at most 31 daily epochs later, catch-up work is bounded to 31 epoch checks even after a very long period with no transactions.
+The owner cannot choose a destination for user-vault principal. Normal vault WATER release is hard-coded to that vault's owner.
 
-## Emergency principal recovery
+### OPERATOR
 
-`activateEmergencyShutdown()` is irreversible.
+Routine server/automation signer:
 
-Once activated:
+- run daily epoch maintenance;
+- batch-sync up to 100 user positions per maintenance transaction;
+- enable/disable Flexible staking;
+- enable/disable new 30-day Locked staking;
+- enable/disable Re-lock;
+- enable/disable WATER compounding;
+- enable/disable BNB->WATER compounding;
+- routine pause/unpause of entry/compound actions.
 
-- Normal controller accounting/staking actions stop.
-- Each vault owner may call `emergencyExitWater()` directly on their vault.
-- That function transfers all WATER held by the vault directly to its owner without running controller reward/expiry accounting.
-- BNB remains independently claimable from the vault.
-- Unclaimed WATER staking rewards may be forfeited in this catastrophic mode.
+The operator **cannot**:
 
-This is deliberately a principal-safety mechanism, not a normal early-unlock feature.
+- withdraw WATER from a user's vault;
+- claim a user's WATER rewards;
+- claim a user's BNB;
+- emergency-exit a user's vault;
+- change a vault owner;
+- fund/schedule rewards;
+- approve swap adapters;
+- recover controller assets;
+- activate emergency shutdown.
+
+`setOperator(address)` is OWNER-only. Set it to `address(0)` to revoke the server operator.
+
+### USER / VAULT OWNER
+
+The user controls their own position and vault:
+
+- stake Flexible;
+- stake Locked;
+- re-lock after expiry;
+- withdraw Flexible principal;
+- claim WATER rewards;
+- compound WATER rewards;
+- claim native BNB dividends directly from their vault;
+- compound vault BNB through an approved adapter;
+- recover unrelated tokens accidentally sent to their vault;
+- after catastrophic shutdown, call `emergencyExitWater()` themselves.
+
+## User-only emergency principal exit
+
+`activateEmergencyShutdown()` is OWNER-only and irreversible.
+
+Once activated, normal staking/controller accounting stops. Each **individual vault owner** can call:
+
+```solidity
+emergencyExitWater()
+```
+
+on their own vault.
+
+The function is `onlyOwner` at the vault level and sends every WATER token in the vault to the vault's stored `owner` address. The controller owner, operator, server, treasury and other users cannot call it successfully.
+
+BNB remains independently claimable by the vault owner during shutdown. Unclaimed controller-side WATER staking rewards may be forfeited in catastrophic shutdown; principal recovery takes priority.
+
+## Daily expiry and operator maintenance
+
+`expiringLockedByEpoch[epoch]` stores the aggregate Locked WATER expiring at a UTC daily boundary.
+
+The first normal state-changing interaction in a new day calls the same global synchronization internally, so users do **not** depend on the operator for correctness.
+
+The server operator can proactively call:
+
+```solidity
+runMaintenance(address[] accounts)
+```
+
+This:
+
+1. synchronizes the global daily epoch;
+2. moves any aggregate expired amount from Locked totals to Flexible totals;
+3. stores the reward-per-token boundary snapshot;
+4. lazily synchronizes up to 100 supplied user records;
+5. emits `MaintenanceRun` plus normal rollover events.
+
+It transfers no user assets.
+
+The public permissionless helpers remain available:
+
+```solidity
+syncGlobalEpoch()
+syncPosition(address account)
+```
+
+so protocol correctness never relies solely on the operator server being online.
+
+## Operational feature switches
+
+Feature IDs:
+
+```text
+0  Flexible staking
+1  Locked 30-day staking
+2  Re-lock
+3  WATER compounding
+4  BNB -> WATER compounding
+```
+
+OWNER or OPERATOR can call:
+
+```solidity
+setFeatureEnabled(uint8 featureId, bool enabled)
+```
+
+Claims, Flexible withdrawals, daily expiry rollover and emergency vault exit are deliberately **not** controlled by these feature flags.
+
+Routine `pauseStaking()` also does not disable `claimWater()` or `withdraw()`.
 
 ## Reward funding
 
@@ -58,33 +155,46 @@ Flexible funding:      35,000,000 WATER
 Locked funding:        65,000,000 WATER
 ```
 
-Fund each pool independently with `fundRewards(poolId, amount)`, then call `scheduleRewards(poolId, duration)`.
+Use:
+
+```solidity
+fundRewards(FLEXIBLE_POOL, flexibleAmount)
+fundRewards(LOCKED_POOL, lockedAmount)
+scheduleRewards(FLEXIBLE_POOL, duration)
+scheduleRewards(LOCKED_POOL, duration)
+```
+
+A later program can use a different split without redeploying the vault/controller architecture.
 
 ## BNB compounding
 
-BNB stays in the user's vault. The user may route some/all BNB through an approved adapter.
+BNB stays in the user's vault until the user chooses to claim or compound it.
 
 The included Pancake V2 adapter:
 
-- forces swap output back to the calling vault;
+- forces swap output back to the calling user vault;
 - supports a deployment-fixed route such as `WBNB -> WATER` or `WBNB -> USDC -> WATER`;
-- uses the fee-on-transfer-supporting Pancake V2 swap function;
-- preserves `minWaterOut` and `deadline` protection.
+- preserves user-provided `minWaterOut` and `deadline` protection;
+- is usable only when both the adapter is approved and `bnbCompoundingEnabled == true`.
 
-Adapter approvals/revocations use a 24-hour on-chain delay.
+Adapter approvals/revocations have a fixed 24-hour delay.
 
-## Production integration requirement
+## Deployment
 
-Before deployment with the real WATER token, verify its dividend implementation:
+Set:
 
-- user vault contract addresses are eligible for BNB dividends;
-- the staking reward controller can be excluded from dividends;
-- wallet -> vault, controller -> vault/user, and vault -> user WATER transfers behave as expected;
-- any WATER transfer tax is understood and accepted.
+```text
+WATER_ADDRESS=
+DEPLOYER_PRIVATE_KEY=
+BSC_TESTNET_RPC_URL=
+BSC_MAINNET_RPC_URL=
+FINAL_OWNER=
+OPERATOR_ADDRESS=
+```
 
-The reward controller should normally be excluded from dividends because it can hold a large pre-funded WATER reward reserve.
+`FINAL_OWNER` should be the high-security owner/multisig. `OPERATOR_ADDRESS` should be the server automation signer and should hold only enough BNB for maintenance gas.
 
-## Local validation
+Then:
 
 ```bash
 npm install
@@ -92,6 +202,4 @@ npm run compile
 npm test
 ```
 
-The included test suite covers the daily aggregate rollover, 35/65 funding model, locked claims, WATER/BNB compounding, lock restart, long inactivity, adapter timelock, permanent vault reuse, excess-token recovery and catastrophic direct principal exit.
-
-See `VALIDATION.md` for the current validation status.
+See `SECURITY.md`, `ARCHITECTURE.md`, `MIGRATION_V2.2_TO_V2.3.md`, and `VALIDATION.md` before deployment.

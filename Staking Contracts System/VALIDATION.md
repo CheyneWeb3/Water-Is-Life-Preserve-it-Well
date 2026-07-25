@@ -1,20 +1,25 @@
-# Validation Status — V2.2
+# V2.3 Validation Status
 
-## Passed locally in this environment
+Date: 2026-07-25
 
-- JavaScript syntax: deployment script.
-- JavaScript syntax: Hardhat test suite.
-- Solidity pragma presence: `0.8.19` across project contracts.
-- Solidity delimiter balance across project contracts.
-- No old multiplier/weighted-stake architecture terms in core source.
-- No `delegatecall`, `selfdestruct`, `tx.origin` or inline assembly in project contracts.
-- Remix copies use OpenZeppelin `v4.5.0` version-pinned GitHub imports.
+## Completed here
 
-## Not completed here
+- V2.2 daily aggregate expiry architecture retained.
+- OWNER / OPERATOR / USER authority separation added.
+- Operator feature switches added.
+- Bounded server maintenance function added.
+- BNB compounding feature switch enforced in both vault and controller registration path.
+- Emergency principal exit remains vault-owner-only.
+- Deployment script updated for `OPERATOR_ADDRESS`.
+- Hardhat test suite expanded for operator permissions and user-only emergency exit.
+- JavaScript syntax checks passed for deployment script and test suite.
+- Static source checks performed for forbidden dangerous constructs and role boundaries.
 
-`npm install` timed out because the package registry was unreachable/too slow. Therefore this package is **not represented as compiler-passed or test-passed yet**.
+## Not completed in this environment
 
-Run in WSL/development environment:
+`npm install` timed out while retrieving dependencies, therefore Solidity compilation and Hardhat test execution are not claimed as passed.
+
+## Required deployment gate
 
 ```bash
 npm install
@@ -22,12 +27,4 @@ npm run compile
 npm test
 ```
 
-Then run a second security pass after any compile/test corrections.
-
-## Production gates still required
-
-- Real WATER token/dividend contract integration test.
-- BSC testnet or fork testing of vault dividend receipt.
-- Pancake route/liquidity verification.
-- Gas profiling of first-interaction daily rollover.
-- Independent external smart-contract audit before meaningful mainnet TVL.
+Then test with the actual WATER contract/dividend implementation on BSC testnet before mainnet funding.

@@ -1,8 +1,8 @@
 {
-  "name": "water-dividend-preserving-staking-v2-2-daily-epoch",
-  "version": "2.2.0",
+  "name": "water-dividend-preserving-staking-v2-3-operator-controls",
+  "version": "2.3.0",
   "private": true,
-  "description": "WATER dividend-preserving staking: Flexible + 30-day Locked pools with daily aggregate expiry epochs",
+  "description": "WATER dividend-preserving staking: Flexible + 30-day Locked pools, daily epochs, server operator controls, user-only vault custody",
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",

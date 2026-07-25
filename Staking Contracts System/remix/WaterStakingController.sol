@@ -10,7 +10,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.5.0/contr
 
 import "./WaterStakingVault.sol";
 
-/// @title WATER Dividend-Preserving Staking Controller V2.2
+/// @title WATER Dividend-Preserving Staking Controller V2.3
 /// @notice Flexible + 30-day Locked staking using permanent per-user ERC-1167 vaults.
 ///
 /// Core rules:
@@ -24,6 +24,8 @@ import "./WaterStakingVault.sol";
 /// - WATER/BNB rewards remain claimable while locked; compounding does not extend the existing lock.
 /// - Adding fresh wallet WATER to a live lock restarts the whole position for a new 30-day term.
 /// - Irreversible emergency shutdown gives each vault owner a direct principal escape that bypasses accounting.
+/// - OWNER/MULTISIG retains high-risk governance; OPERATOR is a separate server/maintenance role.
+/// - OPERATOR may sync epochs/positions and control operational feature switches, but never user custody or rewards.
 contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -35,6 +37,13 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     // ceil(now + 30 days) can be at most currentEpoch + 31.
     uint64 public constant MAX_EXPIRY_LOOKAHEAD_EPOCHS = 31;
     uint64 public constant ADAPTER_CHANGE_DELAY = 1 days;
+    uint256 public constant MAX_MAINTENANCE_ACCOUNTS = 100;
+
+    uint8 public constant FEATURE_FLEXIBLE_STAKING = 0;
+    uint8 public constant FEATURE_LOCKED_STAKING = 1;
+    uint8 public constant FEATURE_RELOCK = 2;
+    uint8 public constant FEATURE_WATER_COMPOUNDING = 3;
+    uint8 public constant FEATURE_BNB_COMPOUNDING = 4;
 
     uint256 public constant REWARD_PRECISION = 1e24;
 
@@ -60,6 +69,10 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     error AdapterChangeNotReady(uint256 executeAfter);
     error AdapterChangeAlreadyPending();
     error NoExcessWater();
+    error NotOperatorOrOwner();
+    error InvalidFeature();
+    error FeatureDisabled(uint8 featureId);
+    error TooManyMaintenanceAccounts(uint256 supplied, uint256 maximum);
 
     struct RewardPool {
         uint64 periodFinish;
@@ -129,6 +142,15 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     IERC20 public immutable water;
     address public immutable vaultImplementation;
 
+    /// @notice Routine server/automation role. It has no user-custody authority.
+    address public operator;
+
+    bool public flexibleStakingEnabled = true;
+    bool public lockedStakingEnabled = true;
+    bool public relockEnabled = true;
+    bool public waterCompoundingEnabled = true;
+    bool public bnbCompoundingEnabled = true;
+
     mapping(uint8 => RewardPool) public rewardPools;
     mapping(address => Position) public positions;
 
@@ -195,14 +217,30 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     event UnsupportedTokenRecovered(address indexed token, address indexed to, uint256 amount);
     event NativeRecovered(address indexed to, uint256 amount);
 
+    event OperatorUpdated(address indexed previousOperator, address indexed newOperator, address indexed by);
+    event FeatureUpdated(uint8 indexed featureId, bool enabled, address indexed by);
+    event MaintenanceRun(
+        address indexed caller,
+        uint64 indexed epoch,
+        uint256 boundariesProcessed,
+        uint256 accountsRequested,
+        uint256 positionsRolled
+    );
+
+    modifier onlyOperatorOrOwner() {
+        if (msg.sender != owner() && msg.sender != operator) revert NotOperatorOrOwner();
+        _;
+    }
+
     modifier whenOperational() {
         if (emergencyShutdown) revert EmergencyShutdownActive();
         _;
     }
 
-    constructor(address water_) {
+    constructor(address water_, address operator_) {
         if (water_ == address(0)) revert ZeroAddress();
         water = IERC20(water_);
+        operator = operator_ == address(0) ? msg.sender : operator_;
         vaultImplementation = address(new WaterStakingVault());
 
         uint64 now_ = uint64(block.timestamp);
@@ -210,6 +248,8 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         lastProcessedEpoch = epoch_;
         rewardPools[FLEXIBLE_POOL].lastUpdateTime = now_;
         rewardPools[LOCKED_POOL].lastUpdateTime = now_;
+
+        emit OperatorUpdated(address(0), operator, msg.sender);
     }
 
     /// @notice The controller may itself receive BNB if its pre-funded WATER reserve participates in WATER dividends.
@@ -253,6 +293,57 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
     {
         _syncGlobal();
         rolledToFlexible = _syncPosition(account);
+    }
+
+    // ---------------------------------------------------------------------
+    // Operator / server maintenance controls
+    // ---------------------------------------------------------------------
+
+    /// @notice OWNER/MULTISIG appoints the routine server operator. Zero address disables the operator role.
+    function setOperator(address newOperator) external onlyOwner {
+        address previous = operator;
+        operator = newOperator;
+        emit OperatorUpdated(previous, newOperator, msg.sender);
+    }
+
+    /// @notice Enable/disable routine entry features. Claims, withdrawals, expiry rollover and emergency exits are never feature-gated.
+    function setFeatureEnabled(uint8 featureId, bool enabled) external onlyOperatorOrOwner whenOperational {
+        if (featureId == FEATURE_FLEXIBLE_STAKING) {
+            flexibleStakingEnabled = enabled;
+        } else if (featureId == FEATURE_LOCKED_STAKING) {
+            lockedStakingEnabled = enabled;
+        } else if (featureId == FEATURE_RELOCK) {
+            relockEnabled = enabled;
+        } else if (featureId == FEATURE_WATER_COMPOUNDING) {
+            waterCompoundingEnabled = enabled;
+        } else if (featureId == FEATURE_BNB_COMPOUNDING) {
+            bnbCompoundingEnabled = enabled;
+        } else {
+            revert InvalidFeature();
+        }
+        emit FeatureUpdated(featureId, enabled, msg.sender);
+    }
+
+    /// @notice Server-friendly maintenance call: process the daily global epoch once, then lazily settle a bounded set of users.
+    /// @dev This function cannot transfer user WATER/BNB or claim rewards. Empty/uninitialized accounts are harmless.
+    function runMaintenance(address[] calldata accounts)
+        external
+        onlyOperatorOrOwner
+        nonReentrant
+        whenOperational
+        returns (uint256 boundariesProcessed, uint256 positionsRolled)
+    {
+        uint256 length = accounts.length;
+        if (length > MAX_MAINTENANCE_ACCOUNTS) {
+            revert TooManyMaintenanceAccounts(length, MAX_MAINTENANCE_ACCOUNTS);
+        }
+
+        boundariesProcessed = _syncGlobal();
+        for (uint256 i = 0; i < length; ++i) {
+            if (_syncPosition(accounts[i])) positionsRolled += 1;
+        }
+
+        emit MaintenanceRun(msg.sender, currentEpoch(), boundariesProcessed, length, positionsRolled);
     }
 
     // ---------------------------------------------------------------------
@@ -371,6 +462,7 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         whenOperational
         returns (uint256 received)
     {
+        if (!flexibleStakingEnabled) revert FeatureDisabled(FEATURE_FLEXIBLE_STAKING);
         if (amount == 0) revert ZeroAmount();
         _prepareAccount(msg.sender);
 
@@ -404,6 +496,7 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         whenOperational
         returns (uint256 received, uint64 unlockAt)
     {
+        if (!lockedStakingEnabled) revert FeatureDisabled(FEATURE_LOCKED_STAKING);
         if (amount == 0) revert ZeroAmount();
         _prepareAccount(msg.sender);
 
@@ -462,6 +555,7 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         whenOperational
         returns (uint64 unlockAt)
     {
+        if (!relockEnabled) revert FeatureDisabled(FEATURE_RELOCK);
         _prepareAccount(msg.sender);
         Position storage position = positions[msg.sender];
         if (!position.initialized || position.amount == 0) revert NoActivePosition();
@@ -544,6 +638,7 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         whenOperational
         returns (uint256 debited, uint256 waterAdded)
     {
+        if (!waterCompoundingEnabled) revert FeatureDisabled(FEATURE_WATER_COMPOUNDING);
         _prepareAccount(msg.sender);
         Position storage position = positions[msg.sender];
         if (!position.initialized) revert NoActivePosition();
@@ -571,6 +666,7 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         nonReentrant
         whenOperational
     {
+        if (!bnbCompoundingEnabled) revert FeatureDisabled(FEATURE_BNB_COMPOUNDING);
         address account = ownerOfVault[msg.sender];
         if (account == address(0) || vaultOf[account] != msg.sender) revert UnknownVault();
         if (waterAmount == 0) revert ZeroAmount();
@@ -713,12 +809,12 @@ contract WaterStakingController is Ownable, Pausable, ReentrancyGuard {
         emit EmergencyShutdownActivated(msg.sender);
     }
 
-    function pauseStaking() external onlyOwner whenOperational {
+    function pauseStaking() external onlyOperatorOrOwner whenOperational {
         _pause();
         emit StakingPaused(msg.sender);
     }
 
-    function unpauseStaking() external onlyOwner whenOperational {
+    function unpauseStaking() external onlyOperatorOrOwner whenOperational {
         _unpause();
         emit StakingUnpaused(msg.sender);
     }
