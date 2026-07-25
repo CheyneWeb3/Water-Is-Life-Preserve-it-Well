@@ -1,0 +1,17 @@
+{
+  "version": "2.2.0",
+  "lock": {
+    "minimumDays": 30,
+    "expiryEpoch": "UTC daily boundary rounded up after 30 days"
+  },
+  "rewardExample": {
+    "totalRewardWater": "100000000",
+    "flexiblePercent": 35,
+    "lockedPercent": 65,
+    "note": "Percentages are deployment/funding economics, not hard-coded contract multipliers."
+  },
+  "operations": {
+    "firstInteractionEachNewDay": "processes aggregate daily expiries",
+    "subsequentInteractionsSameDay": "no daily expiry scan; normal reward checkpoint only"
+  }
+}

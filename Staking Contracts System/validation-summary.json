@@ -1,0 +1,17 @@
+{
+  "version": "2.2.0",
+  "date": "2026-07-25",
+  "solidity": "0.8.19",
+  "openzeppelin": "4.5.0",
+  "staticChecks": {
+    "javascriptSyntax": "pass",
+    "solidityDelimiterBalance": "pass",
+    "pragmaPinned": "pass",
+    "oldMultiplierArchitectureRemoved": "pass",
+    "riskyConstructGrep": "pass"
+  },
+  "hardhatCompile": "not-run: npm install timed out",
+  "hardhatTests": "not-run: npm install timed out",
+  "productionReady": false,
+  "remainingGate": "real WATER token/dividend integration + compile/tests + independent audit"
+}
