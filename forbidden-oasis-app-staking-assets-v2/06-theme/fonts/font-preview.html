@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Forbidden Oasis Typography Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+ --sand:#c89b5a;--sand-bright:#e8c388;--bronze:#9a6a2f;--bronze-deep:#5e3d18;
+ --blood:#7a1410;--blood-bright:#b81f17;--obsidian:#0a0807;--stone:#1c1813;
+ --bone:#d8c9a8;--ash:#7c7163;--water:#7fc7d4;--bnb:#f3ba2f;
+}
+*{box-sizing:border-box} body{margin:0;background:#0a0807;color:var(--bone);padding:32px;
+font-family:"Spectral",serif}
+.wrap{max-width:1100px;margin:auto}
+.card{padding:28px;border:1px solid #2a2118;background:linear-gradient(180deg,rgba(28,24,19,.75),rgba(8,6,4,.88));margin:18px 0}
+h1,h2,h3,.button{font-family:"Cinzel",serif}
+h1{font-size:clamp(2.3rem,6vw,5rem);line-height:.98;color:var(--sand-bright);margin:0 0 12px}
+h2{color:var(--sand);letter-spacing:.08em;text-transform:uppercase}
+.editorial{font-family:"Cormorant Garamond",serif;font-size:1.4rem;line-height:1.5}
+.data{font-family:"Spectral",serif;font-variant-numeric:tabular-nums}
+.metric{font-size:2rem;color:var(--sand-bright)}
+.water{color:var(--water)} .bnb{color:var(--bnb)} .locked{color:var(--blood-bright)}
+.button{display:inline-block;padding:14px 20px;border:1px solid var(--bronze);background:linear-gradient(180deg,#241710,#0e0907);color:var(--sand-bright);letter-spacing:.1em;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.small{font-size:.8rem;color:var(--ash)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="small">CINZEL 800 / HERO</div>
+    <h1>STAKE WATER<br>EARN WATER &amp; BNB</h1>
+    <p class="editorial"><em>Lock for higher returns. Claim or compound anytime.</em></p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="small">CINZEL 700 / SECTION</div>
+      <h2>MY VAULT</h2>
+      <div class="data metric">25,680.42 WATER</div>
+      <p class="editorial">Your personal staking vault preserves the dividend relationship.</p>
+    </div>
+
+    <div class="card">
+      <div class="small">SPECTRAL / DATA</div>
+      <h2 class="water">FLEXIBLE POOL</h2>
+      <div class="data metric water">152,347 WATER / day</div>
+      <p class="data">50,297,556 WATER staked</p>
+    </div>
+
+    <div class="card">
+      <div class="small">SPECTRAL / DATA</div>
+      <h2 class="locked">LOCKED POOL</h2>
+      <div class="data metric locked">228,521 WATER / day</div>
+      <p class="data">75,446,336 WATER staked</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="small">CORMORANT GARAMOND / EDITORIAL</div>
+    <p class="editorial">
+      The Oasis rewards commitment without taking control away from the holder.
+      Your rewards remain yours throughout the lock.
+    </p>
+    <span class="button">Claim WATER</span>
+  </div>
+</div>
+</body>
+</html>
