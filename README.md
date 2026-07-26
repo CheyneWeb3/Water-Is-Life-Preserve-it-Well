@@ -21,23 +21,18 @@ Conceptual App Idea Only
 ## Live Tools & Testing
 
 ### WATER Simulator
-Simulate WATER trading, staking, rewards, and accelerated market activity.
-
 [Open WATER Simulator](https://water-simulator.hausserver.xyz)
 
-### Staking Contract Tests
-View and run the WATER staking contract test suite.
+### STAKING Simulator
+[Open STAKING Simulator](https://water-staking-simulator.hausserver.xyz)
 
+### Staking Contract Tests
 [Open Staking Contract Tests](https://water-stake-ca-tests-app1.hausserver.xyz)
 
 ### WATER Staking Calculator
-Calculate staking allocations, Flexible and Locked rewards, drip rates, and reward-pool requirements.
-
 [Open WATER Calculator](https://water-calcs.hausserver.xyz)
 
 ### WATER Testnet Faucet
-Request test WATER tokens for development, staking, and contract testing.
-
 [Open WATER Testnet Faucet](https://water-faucet.hausserver.xyz/)
 
 
