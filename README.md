@@ -35,6 +35,11 @@ Calculate staking allocations, Flexible and Locked rewards, drip rates, and rewa
 
 [Open WATER Calculator](https://water-calcs.hausserver.xyz)
 
+### WATER Testnet Faucet
+Request test WATER tokens for development, staking, and contract testing.
+
+[Open WATER Testnet Faucet](https://water-faucet.hausserver.xyz/)
+
 
 
 # What the Current System Does
