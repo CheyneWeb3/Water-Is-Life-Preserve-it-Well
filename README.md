@@ -18,25 +18,6 @@ The result is a staking system designed around the token instead of forcing the 
 Conceptual App Idea Only
 
 
-## Live Tools & Testing
-
-### WATER Simulator
-[Open WATER Simulator](https://water-simulator.hausserver.xyz)
-
-### STAKING Simulator
-[Open STAKING Simulator](https://water-staking-simulator.hausserver.xyz)
-
-### Staking Contract Tests
-[Open Staking Contract Tests](https://water-stake-ca-tests-app1.hausserver.xyz)
-
-### WATER Staking Calculator
-[Open WATER Calculator](https://water-calcs.hausserver.xyz)
-
-### WATER Testnet Faucet
-[Open WATER Testnet Faucet](https://water-faucet.hausserver.xyz/)
-
-
-
 # What the Current System Does
 
 A single personal vault can hold **two completely independent staking positions at the same time**:
@@ -1004,4 +985,21 @@ PERSONAL VAULT
 ```
 
 
+
+## Live Tools & Testing
+
+### WATER Simulator
+[Open WATER Simulator](https://water-simulator.hausserver.xyz)
+
+### STAKING Simulator
+[Open STAKING Simulator](https://water-staking-simulator.hausserver.xyz)
+
+### Staking Contract Tests
+[Open Staking Contract Tests](https://water-stake-ca-tests-app1.hausserver.xyz)
+
+### WATER Staking Calculator
+[Open WATER Calculator](https://water-calcs.hausserver.xyz)
+
+### WATER Testnet Faucet
+[Open WATER Testnet Faucet](https://water-faucet.hausserver.xyz/)
 
