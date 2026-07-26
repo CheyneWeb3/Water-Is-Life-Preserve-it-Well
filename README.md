@@ -14,8 +14,26 @@ The result is a staking system designed around the token instead of forcing the 
 
 
 <img src="https://raw.githubusercontent.com/CheyneWeb3/Water-Is-Life-Preserve-it-Well/refs/heads/DevOps/Assets/01-concept-screens/desktop_final.png" alt="Conceptual App Idea Only" width="1100">
+
 Conceptual App Idea Only
----
+
+
+## Live Tools & Testing
+
+### WATER Simulator
+Simulate WATER trading, staking, rewards, and accelerated market activity.
+
+[Open WATER Simulator](https://water-simulator.hausserver.xyz)
+
+### Staking Contract Tests
+View and run the WATER staking contract test suite.
+
+[Open Staking Contract Tests](https://water-stake-ca-tests-app1.hausserver.xyz)
+
+### WATER Staking Calculator
+Calculate staking allocations, Flexible and Locked rewards, drip rates, and reward-pool requirements.
+
+[Open WATER Calculator](https://water-calcs.hausserver.xyz)
 
 
 
@@ -984,3 +1002,6 @@ PERSONAL VAULT
            +
    ELIGIBLE BNB DIVIDENDS
 ```
+
+
+
