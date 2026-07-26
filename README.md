@@ -1003,3 +1003,8 @@ PERSONAL VAULT
 ### WATER Testnet Faucet
 [Open WATER Testnet Faucet](https://water-faucet.hausserver.xyz/)
 
+
+### Brand Assets Page 
+[Open Design Assets Page](https://water-assets.hausserver.xyz)
+
+
