@@ -984,7 +984,3 @@ PERSONAL VAULT
            +
    ELIGIBLE BNB DIVIDENDS
 ```
-
-WATER Staking is no longer based on the original single-position or variable-lock concept.
-
-It is now a modular, upgradeable staking system built specifically to preserve the behavior of a dividend-paying token while supporting independent Flexible and 30-day Locked staking inside each user's permanent vault.
