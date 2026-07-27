@@ -1,0 +1,2592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORBIDDEN OASIS — $WATER</title>
+
+<!-- ============================================================
+     🔧 DEV MODE — TESTING ONLY  ·  MUST BE false BEFORE LAUNCH
+     ============================================================
+     When DEV_MODE is true, clicking "Connect Wallet" skips the real
+     wallet check and opens the holder dashboard with a fake balance,
+     so you can build/test without a funded wallet.
+     A red "DEV MODE" banner shows on screen while this is active.
+     ⚠️  Set DEV_MODE to false before going live, or anyone can enter
+         the gated area without holding $WATER.                        -->
+<script>
+  window.DEV_MODE = false;            // ← set to false before launch
+  window.DEV_TEST_BALANCE = 12500;   // pretend $WATER balance for testing
+  window.DEV_TEST_ADDRESS = "0x7a1c4e3b9f2d8a6c5e4f1b2a3c9d8e7f60514e92"; // fake wallet shown
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+#dev-banner{position:fixed;top:0;left:0;right:0;z-index:99998;
+  font-family:'Spectral',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  text-align:center;padding:.5rem 1rem;color:#fff;background:repeating-linear-gradient(45deg,#7a1410,#7a1410 12px,#5e0f0c 12px,#5e0f0c 24px);
+  box-shadow:0 2px 14px rgba(184,31,23,.5);border-bottom:1px solid #b81f17}
+#dev-banner[hidden]{display:none}
+
+/* ============ TOP NAV MENU ============ */
+#top-nav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9100;
+  display:flex;align-items:center;justify-content:center;}
+.nav-toggle{display:none;background:rgba(12,9,6,.96);border:1px solid var(--bronze);
+  color:var(--sand-bright);font-size:1.1rem;padding:.5rem .8rem;cursor:pointer;line-height:1}
+.nav-links{display:flex;align-items:center;gap:.3rem;
+  background:rgba(12,9,6,.92);border:1px solid var(--bronze);
+  padding:.4rem .5rem;box-shadow:0 10px 28px -12px #000;}
+.nav-links a{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  font-size:.62rem;color:var(--sand);text-decoration:none;padding:.5rem .8rem;transition:.25s;white-space:nowrap}
+.nav-links a:hover{color:var(--sand-bright);background:rgba(154,106,47,.15)}
+.nav-audit{display:inline-flex;align-items:center;gap:.35rem;color:var(--sand-bright)!important;
+  border:1px solid var(--bronze-deep);margin-left:.3rem}
+.nav-audit:hover{border-color:#5fe6a0;color:#5fe6a0!important;box-shadow:0 0 18px rgba(64,220,140,.3)}
+.audit-shield{font-size:.85rem}
+@media(max-width:1180px){
+  /* collapse to hamburger so it never collides with the side bars */
+  #top-nav{top:10px;right:auto;left:50%;}
+  .nav-toggle{display:block}
+  .nav-links{display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);
+    flex-direction:column;align-items:stretch;gap:.1rem;min-width:200px}
+  .nav-links.open{display:flex}
+  .nav-links a{text-align:center;padding:.7rem 1rem;font-size:.66rem}
+  .nav-audit{margin-left:0;justify-content:center}
+}
+
+/* ============ SOCIAL BAR ============ */
+#social-bar{position:fixed;top:14px;right:16px;z-index:9000;
+  display:flex;flex-direction:column;align-items:flex-end;gap:.55rem;
+  padding:.75rem .9rem;max-width:min(92vw,340px);
+  background:linear-gradient(180deg,rgba(20,15,10,.92),rgba(8,6,4,.92));
+  border:1px solid var(--bronze);backdrop-filter:blur(6px);
+  box-shadow:0 14px 36px -14px #000, 0 0 26px rgba(154,106,47,.18);}
+.social-heading{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.06em;
+  font-size:.62rem;text-transform:uppercase;color:var(--sand-bright);text-align:right;line-height:1.4;
+  text-shadow:0 0 14px rgba(232,195,136,.35)}
+.social-links{display:flex;gap:.5rem}
+.social-link{display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;
+  font-family:'Cinzel',serif;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:.58rem;
+  color:var(--sand);padding:.5rem .7rem;border:1px solid var(--bronze-deep);
+  background:linear-gradient(180deg,#241710,#0e0907);transition:.25s}
+.social-link svg{flex-shrink:0}
+.social-link:hover{color:#fff;border-color:var(--sand-bright);box-shadow:0 0 20px rgba(232,195,136,.3);transform:translateY(-1px)}
+.social-link.tg:hover{border-color:#2aabee;box-shadow:0 0 20px rgba(42,171,238,.4);color:#7fd0f5}
+.social-link.x:hover{border-color:#e8e8e8;box-shadow:0 0 20px rgba(255,255,255,.25);color:#fff}
+.social-link.rd:hover{border-color:#ff4500;box-shadow:0 0 20px rgba(255,69,0,.4);color:#ff7a47}
+@media(max-width:600px){
+  #social-bar{top:8px;right:8px;left:8px;max-width:none;align-items:center;padding:.6rem}
+  .social-heading{text-align:center;font-size:.56rem}
+  .social-link span{display:none}
+  .social-link{padding:.55rem .7rem}
+}
+:root{
+  --sand:#c89b5a;
+  --sand-bright:#e8c388;
+  --bronze:#9a6a2f;
+  --bronze-deep:#5e3d18;
+  --blood:#7a1410;
+  --blood-bright:#b81f17;
+  --obsidian:#0a0807;
+  --obsidian-2:#13100c;
+  --stone:#1c1813;
+  --bone:#d8c9a8;
+  --ash:#7c7163;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+section[id],footer[id]{scroll-margin-top:80px}
+body{
+  background:var(--obsidian);
+  color:var(--bone);
+  font-family:'Spectral',serif;
+  overflow-x:hidden;
+  cursor:default;
+}
+::selection{background:var(--blood);color:var(--sand-bright)}
+
+/* grain overlay */
+body::after{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ===== SHAKE ===== */
+@keyframes shudder{
+ 0%{transform:translate(0,0)}10%{transform:translate(-2px,1px)}20%{transform:translate(2px,-1px)}
+ 30%{transform:translate(-3px,2px)}40%{transform:translate(3px,-1px)}50%{transform:translate(-2px,-2px)}
+ 60%{transform:translate(2px,2px)}70%{transform:translate(-1px,1px)}80%{transform:translate(2px,-2px)}
+ 90%{transform:translate(-1px,1px)}100%{transform:translate(0,0)}
+}
+.shaking{animation:shudder .28s linear infinite}
+
+/* ============ SECTION 1: THE GATEWAY ============ */
+#gateway{
+  position:relative;min-height:100vh;width:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding-top:110px;box-sizing:border-box;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 38%, rgba(122,20,16,.28), transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 120%, rgba(200,155,90,.10), transparent 60%),
+    linear-gradient(180deg,#060403 0%, #0d0907 55%, #120b06 100%);
+}
+/* heat haze horizon */
+#gateway::before{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
+  background:linear-gradient(180deg,transparent, rgba(122,20,16,.10) 60%, rgba(154,106,47,.18));
+  filter:blur(2px);
+}
+#token-canvas{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-58%);
+  width:560px;height:560px;max-width:90vw;max-height:60vh;z-index:2;
+}
+.gateway-content{position:relative;z-index:3;text-align:center;padding:0 24px;margin-top:auto;margin-bottom:7vh}
+
+/* countdown timer */
+.countdown{position:relative;z-index:5;margin:0 auto 1.5rem;animation:fadeUp 1.2s ease both .2s}
+.countdown-label{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.42em;text-transform:uppercase;
+  font-size:.7rem;color:var(--sand);margin-bottom:1.1rem;opacity:.85;text-shadow:0 0 16px rgba(154,106,47,.4)}
+.countdown-clock{display:inline-flex;align-items:flex-start;gap:.8rem;
+  padding:1.2rem 1.8rem;border:1px solid var(--bronze);
+  background:linear-gradient(180deg,rgba(20,15,10,.7),rgba(8,6,4,.6));
+  box-shadow:0 14px 40px -14px #000, 0 0 40px rgba(154,106,47,.2), inset 0 0 40px rgba(0,0,0,.4)}
+.cd-unit{display:flex;flex-direction:column;align-items:center;gap:.4rem;min-width:clamp(48px,10vw,84px)}
+.cd-num{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(2rem,6vw,3.6rem);line-height:1;
+  color:var(--sand-bright);text-shadow:0 0 26px rgba(232,195,136,.4);font-variant-numeric:tabular-nums}
+.cd-tag{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  font-size:.52rem;color:var(--bronze)}
+.cd-sep{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.6rem,5vw,3rem);line-height:1.1;
+  color:var(--blood-bright);opacity:.7;text-shadow:0 0 20px rgba(184,31,23,.5);animation:cdBlink 1s steps(1) infinite}
+@keyframes cdBlink{50%{opacity:.2}}
+.countdown-date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;
+  color:var(--bone);opacity:.8;margin-top:1.1rem;letter-spacing:.04em}
+.countdown.launched .countdown-clock{border-color:#5fe6a0;box-shadow:0 0 50px rgba(64,220,140,.4)}
+.countdown.launched .cd-num{color:#5fe6a0;text-shadow:0 0 26px rgba(64,220,140,.5)}
+.countdown-live{font-family:'Cinzel',serif;font-weight:900;letter-spacing:.3em;text-transform:uppercase;
+  font-size:clamp(1.4rem,4vw,2.2rem);color:#5fe6a0;text-shadow:0 0 30px rgba(64,220,140,.6);
+  padding:1.4rem 2rem;border:1px solid #5fe6a0;background:rgba(8,6,4,.6);display:inline-block}
+@media(max-width:560px){
+  #gateway{padding-top:130px}
+  .countdown-clock{gap:.4rem;padding:.9rem 1rem}
+  .cd-sep{display:none}
+  .cd-unit{min-width:auto;flex:1}
+}
+.eyebrow{
+  font-family:'Cinzel',serif;letter-spacing:.55em;font-size:.62rem;font-weight:600;
+  color:var(--sand);text-transform:uppercase;margin-bottom:1.6rem;opacity:.7;
+  animation:fadeUp 1.4s ease both .3s;
+}
+h1.headline{
+  font-family:'Cinzel',serif;font-weight:900;
+  font-size:clamp(2.6rem,8vw,6rem);line-height:.95;letter-spacing:.02em;
+  color:var(--sand-bright);
+  text-shadow:0 0 40px rgba(184,31,23,.45), 0 2px 0 #000;
+  animation:fadeUp 1.4s ease both .5s;
+}
+h1.headline .bleed{
+  color:var(--blood-bright);
+  text-shadow:0 0 30px rgba(184,31,23,.9), 0 0 60px rgba(184,31,23,.4);
+}
+.subheadline{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:clamp(1rem,2.4vw,1.55rem);color:var(--bone);
+  margin:1.4rem auto 2.6rem;max-width:540px;opacity:.85;
+  animation:fadeUp 1.4s ease both .75s;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+
+/* the monolith button */
+.enter-btn{
+  position:relative;display:inline-block;
+  font-family:'Cinzel',serif;font-weight:700;letter-spacing:.32em;
+  font-size:.78rem;text-transform:uppercase;color:var(--sand-bright);
+  padding:1.35rem 3rem;border:1px solid var(--bronze);
+  background:linear-gradient(180deg,#241710,#0e0907);
+  box-shadow:inset 0 1px 0 rgba(232,195,136,.18), 0 20px 50px -10px #000, 0 0 0 1px #000;
+  cursor:pointer;transition:color .3s, border-color .3s, box-shadow .3s;
+  animation:fadeUp 1.4s ease both 1s, pulseGlow 4s ease-in-out infinite 2s;
+  overflow:hidden;
+}
+.enter-btn::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 120%, rgba(184,31,23,.5), transparent 70%);
+  opacity:0;transition:opacity .35s;
+}
+.enter-btn:hover{color:#fff;border-color:var(--blood-bright);
+  box-shadow:inset 0 1px 0 rgba(232,195,136,.2), 0 0 60px rgba(184,31,23,.5), 0 24px 60px -10px #000;}
+.enter-btn:hover::before{opacity:1}
+@keyframes pulseGlow{0%,100%{box-shadow:inset 0 1px 0 rgba(232,195,136,.18),0 20px 50px -10px #000}
+50%{box-shadow:inset 0 1px 0 rgba(232,195,136,.18),0 0 40px rgba(154,106,47,.35),0 20px 50px -10px #000}}
+
+.scroll-cue{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:3;
+  font-family:'Cinzel',serif;letter-spacing:.4em;font-size:.55rem;color:var(--ash);
+  text-transform:uppercase;animation:fadeUp 2s ease both 1.6s, bob 2.4s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+/* ============ POPUP ============ */
+#canteen-modal{
+  position:fixed;inset:0;z-index:10000;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(3,2,1,.86);backdrop-filter:blur(6px);
+}
+#canteen-modal.show{display:flex;animation:modalIn .4s ease}
+@keyframes modalIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  position:relative;max-width:440px;width:90%;text-align:center;
+  background:linear-gradient(180deg,#161009,#0a0705);
+  border:1px solid var(--blood);padding:3rem 2.4rem 2.4rem;
+  box-shadow:0 0 80px rgba(184,31,23,.3), inset 0 0 60px rgba(0,0,0,.6);
+  animation:modalPop .5s cubic-bezier(.2,1.2,.3,1);
+}
+@keyframes modalPop{from{transform:scale(.85) translateY(20px);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-box .skull{font-size:2.4rem;margin-bottom:1rem;filter:drop-shadow(0 0 14px rgba(184,31,23,.7))}
+.modal-box h3{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.04em;color:var(--blood-bright);
+  font-size:1.5rem;margin-bottom:1rem;text-shadow:0 0 24px rgba(184,31,23,.5)}
+.modal-box p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.25rem;color:var(--bone);line-height:1.5}
+.modal-box p b{color:var(--sand-bright);font-style:normal}
+.modal-close{
+  margin-top:2rem;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--sand);background:none;border:1px solid var(--bronze-deep);
+  padding:.9rem 2rem;cursor:pointer;transition:.3s;
+}
+.modal-close:hover{color:var(--sand-bright);border-color:var(--sand);background:rgba(154,106,47,.12)}
+
+/* ============ THE SOUL SCAN OVERLAY ============ */
+#soul-scan{
+  position:fixed;inset:0;z-index:11000;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(2,1,1,.82);backdrop-filter:blur(10px);
+}
+#soul-scan.show{display:flex;animation:modalIn .35s ease}
+.scan-core{display:flex;flex-direction:column;align-items:center;gap:2.4rem;width:90%;max-width:560px;padding:0 20px}
+/* radar ring */
+.radar{
+  position:relative;width:150px;height:150px;border-radius:50%;
+  border:2px solid rgba(154,106,47,.5);
+  box-shadow:0 0 40px rgba(154,106,47,.35), inset 0 0 30px rgba(154,106,47,.15);
+  display:flex;align-items:center;justify-content:center;
+  animation:radarPulse 2s ease-in-out infinite;
+}
+.radar::before,.radar::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(154,106,47,.25)}
+.radar::before{inset:18px}
+.radar::after{inset:40px}
+.radar-sweep{
+  position:absolute;inset:-2px;border-radius:50%;
+  background:conic-gradient(from 0deg, transparent 0deg, rgba(232,195,136,.55) 35deg, transparent 60deg);
+  animation:sweep 1.6s linear infinite;
+}
+.radar-eye{position:relative;z-index:2;font-size:2.4rem;color:var(--sand-bright);
+  filter:drop-shadow(0 0 16px rgba(232,195,136,.7));animation:eyePulse 2s ease-in-out infinite}
+@keyframes sweep{to{transform:rotate(360deg)}}
+@keyframes radarPulse{0%,100%{box-shadow:0 0 40px rgba(154,106,47,.3),inset 0 0 30px rgba(154,106,47,.12)}
+  50%{box-shadow:0 0 64px rgba(154,106,47,.55),inset 0 0 40px rgba(154,106,47,.22)}}
+@keyframes eyePulse{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+/* radar state colors */
+.radar.deny{border-color:rgba(184,31,23,.6);box-shadow:0 0 50px rgba(184,31,23,.5),inset 0 0 30px rgba(184,31,23,.2)}
+.radar.deny .radar-sweep{background:conic-gradient(from 0deg,transparent 0deg,rgba(184,31,23,.6) 35deg,transparent 60deg)}
+.radar.deny .radar-eye{color:var(--blood-bright);filter:drop-shadow(0 0 18px rgba(184,31,23,.9))}
+.radar.grant{border-color:rgba(64,220,140,.6);box-shadow:0 0 60px rgba(64,220,140,.45),inset 0 0 30px rgba(64,220,140,.2)}
+.radar.grant .radar-sweep{background:conic-gradient(from 0deg,transparent 0deg,rgba(64,220,140,.6) 35deg,transparent 60deg)}
+.radar.grant .radar-eye{color:#5fe6a0;filter:drop-shadow(0 0 20px rgba(64,220,140,.9))}
+/* terminal */
+.scan-terminal{
+  width:100%;min-height:170px;font-family:'Spectral',monospace;
+  font-size:.82rem;line-height:1.9;letter-spacing:.04em;color:var(--sand);
+  text-align:left;text-shadow:0 0 8px rgba(154,106,47,.4);
+}
+.scan-terminal .line{white-space:pre-wrap;word-break:break-word;opacity:0;animation:lineIn .25s ease forwards}
+@keyframes lineIn{to{opacity:1}}
+.scan-terminal .tag{color:var(--bronze)}
+.scan-terminal .ok{color:#5fe6a0;text-shadow:0 0 10px rgba(64,220,140,.5)}
+.scan-terminal .crit{color:var(--blood-bright);text-shadow:0 0 10px rgba(184,31,23,.6)}
+.scan-terminal .val{color:var(--sand-bright)}
+.scan-terminal .cursor{display:inline-block;width:8px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.scan-dismiss{
+  font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--sand);background:none;border:1px solid var(--bronze-deep);padding:.85rem 2rem;cursor:pointer;transition:.3s;
+}
+.scan-dismiss:hover{color:var(--sand-bright);border-color:var(--sand);background:rgba(154,106,47,.12)}
+
+/* swap CTA in manifesto (Path A target) */
+.swap-cta{
+  display:inline-block;margin-top:2.4rem;text-decoration:none;
+  font-family:'Cinzel',serif;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  font-size:.74rem;color:var(--sand-bright);padding:1.15rem 2.6rem;
+  border:1px solid var(--bronze);background:linear-gradient(180deg,#241710,#0e0907);
+  box-shadow:inset 0 1px 0 rgba(232,195,136,.18),0 16px 40px -12px #000;transition:.3s;
+}
+.swap-cta:hover{color:#fff;border-color:var(--blood-bright);box-shadow:0 0 44px rgba(184,31,23,.4),0 16px 40px -12px #000}
+.swap-cta.flash{animation:ctaFlash 1.4s ease 3}
+@keyframes ctaFlash{0%,100%{box-shadow:inset 0 1px 0 rgba(232,195,136,.18),0 16px 40px -12px #000}
+  50%{box-shadow:0 0 50px rgba(184,31,23,.6),0 16px 40px -12px #000}}
+
+/* ============ THE OASIS — HOLDER DASHBOARD ============ */
+#oasis-dash{position:fixed;inset:0;z-index:12000;display:none;overflow-y:auto;color:var(--bone)}
+#oasis-dash.show{display:block;animation:dashIn .8s ease}
+@keyframes dashIn{from{opacity:0}to{opacity:1}}
+.dash-bg{position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(64,200,140,.10), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 50% 120%, rgba(200,155,90,.10), transparent 60%),
+    linear-gradient(180deg,#060403,#0c0805 50%,#0a0706);
+}
+.dash-bg::after{content:"";position:absolute;inset:0;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='dn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23dn)'/%3E%3C/svg%3E")}
+.dash-inner{max-width:1040px;margin:0 auto;padding:2.4rem 6vw 5rem}
+.dash-top{display:flex;justify-content:space-between;align-items:center;padding:1rem 0 2.4rem;border-bottom:1px solid #2a2118;margin-bottom:3rem;flex-wrap:wrap;gap:1rem}
+.dash-brand{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.22em;font-size:.95rem;color:var(--sand-bright);text-transform:uppercase;display:flex;align-items:center;gap:.6rem}
+.dash-eye{filter:drop-shadow(0 0 12px rgba(232,195,136,.6))}
+.dash-wallet{display:flex;align-items:center;gap:.7rem;font-family:'Spectral',monospace;font-size:.85rem;color:var(--sand);
+  border:1px solid #2a2118;padding:.5rem .8rem;background:rgba(8,6,4,.6)}
+.dash-wallet-dot{width:8px;height:8px;border-radius:50%;background:#5fe6a0;box-shadow:0 0 10px rgba(64,220,140,.8);animation:eyePulse 2s ease-in-out infinite}
+.dash-exit{background:none;border:none;color:var(--ash);font-size:1.1rem;cursor:pointer;line-height:1;padding:0 .2rem;transition:.25s}
+.dash-exit:hover{color:var(--blood-bright)}
+.dash-welcome{text-align:center;margin-bottom:3.4rem}
+.dash-rank-eye{font-size:2.8rem;margin-bottom:.8rem;filter:drop-shadow(0 0 20px rgba(64,220,140,.4))}
+.dash-hail{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.4rem,3.4vw,2.3rem);color:var(--sand-bright);letter-spacing:.03em;line-height:1.2;text-shadow:0 0 36px rgba(64,200,140,.25)}
+.dash-hail span{color:#5fe6a0}
+.dash-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.25rem;color:var(--bone);opacity:.82;margin-top:.8rem}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem;margin-bottom:2.6rem}
+.dash-card{position:relative;padding:1.8rem 1.6rem;border:1px solid #2a2118;
+  background:linear-gradient(180deg,rgba(28,24,19,.72),rgba(8,6,4,.85));box-shadow:0 30px 60px -30px #000,inset 0 0 40px rgba(0,0,0,.5)}
+.dash-card-label{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:.62rem;color:var(--bronze);margin-bottom:.9rem}
+.dash-card-big{font-family:'Cinzel',serif;font-weight:900;font-size:1.9rem;line-height:1;color:var(--sand-bright);text-shadow:0 0 22px rgba(232,195,136,.25);font-variant-numeric:tabular-nums}
+.dash-unit{font-size:.7rem;letter-spacing:.2em;color:var(--ash);vertical-align:middle}
+.dash-card-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.02rem;color:var(--bone);opacity:.7;margin-top:.7rem}
+.dash-card-mid{font-family:'Cinzel',serif;font-weight:800;font-size:1.4rem;color:var(--sand-bright);font-variant-numeric:tabular-nums}
+.dash-card.mini{padding:1.4rem 1.4rem}
+.dash-card.mini.burn{border-top:2px solid var(--blood)}
+.dash-card.mini.burn .dash-card-mid{color:var(--blood-bright)}
+.dash-card.mini.water{border-top:2px solid #7fc7d4}
+.dash-card.mini.water .dash-card-mid{color:#7fc7d4}
+.dash-grid.three{grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem}
+/* progress */
+.dash-progress-wrap{margin-bottom:3.4rem}
+.dash-progress-head{display:flex;justify-content:space-between;font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--bronze);margin-bottom:.7rem}
+.dash-progress{height:10px;border:1px solid #2a2118;background:rgba(8,6,4,.7);overflow:hidden}
+.dash-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--bronze),var(--sand-bright));box-shadow:0 0 16px rgba(232,195,136,.6);transition:width 1.4s cubic-bezier(.2,.8,.3,1)}
+.dash-progress-note{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:var(--bone);opacity:.78;margin-top:.7rem;text-align:center}
+/* section titles */
+.dash-section-title{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.22em;text-transform:uppercase;font-size:.78rem;color:var(--sand);margin:2.6rem 0 1.4rem;padding-top:2rem;border-top:1px solid #2a2118}
+.dash-section-title:first-of-type{border-top:none}
+/* acolyte ID card */
+.acolyte-card-wrap{text-align:center;margin-bottom:1rem}
+.acolyte-card{width:100%;max-width:560px;height:auto;border:1px solid #2a2118;box-shadow:0 30px 70px -30px #000,0 0 50px rgba(154,106,47,.12);display:inline-block}
+.acolyte-actions{display:flex;gap:.9rem;justify-content:center;margin-top:1.3rem;flex-wrap:wrap}
+.acolyte-btn{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.16em;text-transform:uppercase;font-size:.66rem;
+  color:var(--sand-bright);padding:.85rem 1.8rem;border:1px solid var(--bronze);cursor:pointer;
+  background:linear-gradient(180deg,#241710,#0e0907);transition:.25s}
+.acolyte-btn:hover{color:#fff;border-color:var(--sand-bright);box-shadow:0 0 26px rgba(232,195,136,.3)}
+.acolyte-btn.ghost{border-color:#2a2118;color:var(--ash)}
+.acolyte-btn.ghost:hover{color:var(--sand-bright);border-color:var(--bronze);box-shadow:none}
+.acolyte-hint{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:var(--bone);opacity:.65;margin-top:1rem}
+/* live market */
+.dash-change{font-style:normal}
+.dash-change.up{color:#5fe6a0}
+.dash-change.down{color:var(--blood-bright)}
+.dash-spark-wrap{margin:-1.2rem 0 1rem;border:1px solid #2a2118;background:rgba(8,6,4,.5);padding:.6rem .4rem}
+.dash-spark{width:100%;height:64px;display:block}
+.dash-spark .spark-line{fill:none;stroke:var(--sand-bright);stroke-width:2;filter:drop-shadow(0 0 6px rgba(232,195,136,.5))}
+.dash-spark .spark-area{fill:url(#sparkGrad);opacity:.35}
+/* recent burns feed */
+.dash-burns{list-style:none;display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+.dash-burns li{display:flex;justify-content:space-between;align-items:center;gap:1rem;
+  padding:.85rem 1.1rem;border:1px solid #2a2118;background:rgba(8,6,4,.5);
+  font-family:'Spectral',monospace;font-size:.82rem;color:var(--bone)}
+.dash-burns li .burn-amt{color:var(--blood-bright);font-weight:600}
+.dash-burns li .burn-amt::before{content:"🔥 ";filter:none}
+.dash-burns li .burn-time{color:var(--ash);font-size:.72rem;letter-spacing:.06em}
+.dash-burns li.dash-burn-empty{justify-content:center;color:var(--ash);font-style:italic;font-family:'Cormorant Garamond',serif;font-size:1.05rem}
+.dash-burns li a{color:var(--bronze);text-decoration:none}
+.dash-burns li a:hover{color:var(--sand-bright)}
+/* meter */
+.dash-meter{position:relative;height:30px;border:1px solid #2a2118;background:rgba(8,6,4,.7);overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:1rem}
+.dash-meter-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--blood),var(--blood-bright));box-shadow:0 0 22px rgba(184,31,23,.6);transition:width 1.4s ease}
+.dash-meter-cap{position:relative;z-index:2;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.26em;font-size:.58rem;text-transform:uppercase;color:var(--sand-bright);text-shadow:0 0 8px #000}
+/* governance */
+.dash-gov{border:1px solid #2a2118;background:linear-gradient(180deg,rgba(28,24,19,.6),rgba(8,6,4,.82));padding:2rem 1.8rem}
+.dash-gov-status{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.18rem;color:var(--sand);opacity:.85;margin-bottom:1.6rem;text-align:center}
+.dash-gov-list{list-style:none;display:flex;flex-direction:column;gap:.9rem}
+.dash-prop{padding:1.2rem 1.4rem;border:1px solid #2a2118;background:rgba(8,6,4,.5);position:relative}
+.dash-prop.locked{opacity:.62}
+.dash-prop-head{font-family:'Cinzel',serif;font-weight:600;font-size:.85rem;letter-spacing:.04em;color:var(--sand-bright);display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem}
+.dash-prop-tag{font-size:.55rem;letter-spacing:.2em;color:var(--ash);border:1px solid #2a2118;padding:.25rem .5rem;text-transform:uppercase}
+.dash-prop-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:var(--bone);opacity:.72}
+.dash-prop.live{border-color:rgba(64,220,140,.4)}
+.dash-prop-tag.live{color:#5fe6a0;border-color:rgba(64,220,140,.5)}
+.dash-prop-tally{margin:.8rem 0 .2rem}
+.dash-prop-tally-bar{height:6px;background:rgba(8,6,4,.7);border:1px solid #2a2118;overflow:hidden}
+.dash-prop-tally-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--bronze),var(--sand-bright));box-shadow:0 0 10px rgba(232,195,136,.5);transition:width .8s ease}
+.dash-prop-tally-txt{font-family:'Spectral',monospace;font-size:.72rem;color:var(--ash);margin-top:.4rem;letter-spacing:.04em}
+.dash-prop-foot{margin-top:.9rem}
+.dash-vote-btn{display:inline-block;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  font-size:.6rem;text-decoration:none;padding:.6rem 1.3rem;border:1px solid var(--bronze);color:var(--sand-bright);
+  background:linear-gradient(180deg,#241710,#0e0907);transition:.25s;cursor:pointer}
+.dash-vote-btn:hover{color:#fff;border-color:#5fe6a0;box-shadow:0 0 22px rgba(64,220,140,.35)}
+.dash-vote-btn.ghost{border-color:#2a2118;color:var(--ash)}
+.dash-vote-btn.ghost:hover{color:var(--sand-bright);border-color:var(--bronze);box-shadow:none}
+.dash-vote-btn.disabled{border-color:#2a2118;color:var(--ash);opacity:.6;cursor:not-allowed}
+.dash-gov-foot{font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ash);margin-top:1.6rem;text-align:center}
+.dash-bottom{text-align:center;margin-top:4rem;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.3em;text-transform:uppercase;font-size:.9rem;color:var(--sand);opacity:.6}
+@media(max-width:760px){
+  .dash-grid,.dash-grid.three{grid-template-columns:1fr}
+}
+
+/* ============ SECTION 2: THE CODEX ============ */
+#codex{
+  position:relative;padding:11rem 6vw;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(122,20,16,.12), transparent 50%),
+    linear-gradient(180deg,#120b06,#0a0706 30%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='o'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.04' numOctaves='4' seed='8'/%3E%3CfeColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.03 0 0 0 0 0.02 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23o)'/%3E%3C/svg%3E");
+  background-blend-mode:normal,normal,overlay;
+}
+.section-head{
+  font-family:'Cinzel',serif;font-weight:700;letter-spacing:.3em;
+  font-size:clamp(1.1rem,2.4vw,1.7rem);color:var(--sand);
+  text-transform:uppercase;text-align:center;margin-bottom:5rem;
+}
+.section-head span{color:var(--blood-bright)}
+.section-head.sub{font-size:clamp(.95rem,2vw,1.3rem);margin:6rem 0 4rem;opacity:0;transform:translateY(30px)}
+.section-head.sub.in{animation:fadeUp 1s ease forwards}
+
+/* opening declaration */
+.manifesto-intro{max-width:760px;margin:0 auto}
+.manifesto-title{
+  font-family:'Cinzel',serif;font-weight:900;text-align:center;line-height:1.05;
+  font-size:clamp(1.8rem,5vw,3.4rem);color:var(--sand-bright);letter-spacing:.02em;
+  text-shadow:0 0 40px rgba(154,106,47,.35);margin-bottom:2.5rem;
+  opacity:0;transform:translateY(30px);
+}
+.manifesto-title.in{animation:fadeUp 1.1s ease forwards}
+.manifesto-title span{color:var(--blood-bright);text-shadow:0 0 36px rgba(184,31,23,.6)}
+.manifesto-lede{
+  font-family:'Cinzel',serif;font-weight:700;text-align:center;text-transform:uppercase;
+  letter-spacing:.3em;font-size:clamp(1rem,2.4vw,1.4rem);color:var(--blood-bright);
+  margin-bottom:2.6rem;opacity:0;transform:translateY(30px);
+}
+.manifesto-lede.in{animation:fadeUp 1s ease forwards}
+.manifesto-body p{
+  font-family:'Cormorant Garamond',serif;font-size:1.32rem;line-height:1.75;color:var(--bone);
+  opacity:0;transform:translateY(26px);margin-bottom:1.5rem;text-align:left;
+}
+.manifesto-body p.in{animation:fadeUp 1s ease forwards;opacity:.9}
+.manifesto-body p em{color:var(--sand);font-style:italic}
+.manifesto-body p.accent{
+  font-family:'Cinzel',serif;font-weight:600;font-size:clamp(1.1rem,2.2vw,1.45rem);
+  text-align:center;color:var(--sand-bright);letter-spacing:.04em;line-height:1.5;
+  margin-top:2.4rem;text-shadow:0 0 24px rgba(232,195,136,.3);
+}
+.manifesto-body p.accent.in{opacity:1}
+
+.pillars{
+  max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:2.5rem;
+  align-items:stretch;
+}
+.pillar{
+  position:relative;padding:2.8rem 2rem 3.2rem;
+  background:linear-gradient(180deg,rgba(28,24,19,.9),rgba(10,8,6,.9));
+  border-top:2px solid var(--bronze);
+  box-shadow:inset 0 0 50px rgba(0,0,0,.6), 0 30px 60px -30px #000;
+  opacity:0;transform:translateY(50px);
+}
+.pillar.in{animation:fadeUp 1s ease forwards}
+.pillar .roman{
+  font-family:'Cinzel',serif;font-weight:900;font-size:2.4rem;color:var(--bronze);
+  text-shadow:0 0 20px rgba(154,106,47,.4);display:block;margin-bottom:.4rem;
+}
+.pillar h4{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  font-size:.95rem;color:var(--sand-bright);margin-bottom:1.3rem}
+.pillar p{font-family:'Cormorant Garamond',serif;font-size:1.18rem;line-height:1.6;color:var(--bone);opacity:.86}
+.pillar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--blood),transparent);opacity:.5}
+
+/* covenant */
+.covenant{max-width:820px;margin:7rem auto 0;text-align:center;opacity:0;transform:translateY(40px)}
+.covenant.in{animation:fadeUp 1s ease forwards}
+.covenant-head{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  font-size:clamp(1.1rem,2.6vw,1.7rem);color:var(--sand);margin-bottom:1.4rem;
+  text-shadow:0 0 30px rgba(154,106,47,.3)}
+.covenant-oath{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;
+  color:var(--bone);margin-bottom:2.6rem}
+.covenant-oath b{color:var(--blood-bright);font-style:normal;letter-spacing:.04em}
+.covenant-list{list-style:none;text-align:left;display:flex;flex-direction:column;gap:1.2rem;max-width:680px;margin:0 auto}
+.covenant-list li{display:flex;gap:1.2rem;align-items:flex-start;padding:1.4rem 1.6rem;
+  border-left:2px solid var(--bronze);background:linear-gradient(90deg,rgba(28,24,19,.7),transparent);
+  opacity:0;transform:translateX(-24px)}
+.covenant-list li.in{animation:slideIn .9s ease forwards}
+@keyframes slideIn{to{opacity:1;transform:translateX(0)}}
+.covenant-list .glyph{font-size:1.5rem;color:var(--sand);filter:drop-shadow(0 0 10px rgba(232,195,136,.4));flex-shrink:0}
+.covenant-list div{font-family:'Cormorant Garamond',serif;font-size:1.18rem;line-height:1.55;color:var(--bone);opacity:.88}
+.covenant-list strong{font-family:'Cinzel',serif;font-weight:600;font-size:.9rem;letter-spacing:.04em;
+  color:var(--sand-bright);display:block;margin-bottom:.3rem}
+
+/* ultimatum */
+.ultimatum{max-width:760px;margin:7rem auto 0;text-align:center;padding:3.2rem 2.6rem;
+  border:1px solid var(--blood);position:relative;
+  background:radial-gradient(ellipse at 50% 120%, rgba(122,20,16,.22), rgba(10,8,6,.9) 70%);
+  box-shadow:0 0 70px rgba(122,20,16,.2) inset, 0 40px 80px -40px #000;
+  opacity:0;transform:translateY(40px)}
+.ultimatum.in{animation:fadeUp 1s ease forwards}
+.ultimatum-head{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+  font-size:1.2rem;color:var(--blood-bright);margin-bottom:1.8rem;text-shadow:0 0 26px rgba(184,31,23,.5)}
+.ultimatum p{font-family:'Cormorant Garamond',serif;font-size:1.28rem;line-height:1.65;color:var(--bone);
+  opacity:.9;margin-bottom:1.1rem}
+.ultimatum-tail{font-style:italic;color:var(--sand)!important;margin-top:1.6rem!important}
+.ultimatum-verdict{font-family:'Cinzel',serif;font-weight:900;letter-spacing:.18em;
+  font-size:clamp(1.6rem,4.5vw,2.8rem);color:var(--sand-bright);margin-top:2.2rem;
+  text-shadow:0 0 40px rgba(184,31,23,.6);animation:verdictPulse 3s ease-in-out infinite}
+@keyframes verdictPulse{0%,100%{text-shadow:0 0 40px rgba(184,31,23,.5)}50%{text-shadow:0 0 60px rgba(184,31,23,.9),0 0 90px rgba(184,31,23,.4)}}
+
+/* ============ SECTION 3: THE SANCTUARY ============ */
+#sanctuary{
+  position:relative;padding:11rem 6vw;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(200,155,90,.08), transparent 55%),
+    linear-gradient(180deg,#0a0706,#100a05);
+}
+.evap-intro{max-width:760px;margin:-2.5rem auto 4rem;text-align:center;
+  font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.35rem;line-height:1.55;
+  color:var(--bone);opacity:0;transform:translateY(30px)}
+.evap-intro.in{animation:fadeUp 1s ease forwards}
+.evap-grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+.evap-stat{
+  position:relative;padding:2.6rem 1.6rem 2.8rem;text-align:center;border:1px solid #2a2118;
+  background:linear-gradient(180deg,rgba(28,24,19,.7),rgba(8,6,4,.85));
+  box-shadow:0 30px 60px -30px #000, inset 0 0 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(40px);overflow:hidden;
+}
+.evap-stat.in{animation:fadeUp .9s ease forwards}
+.evap-stat .evap-icon{font-size:1.9rem;margin-bottom:1rem;filter:drop-shadow(0 0 14px rgba(154,106,47,.4))}
+.evap-stat .evap-label{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  font-size:.7rem;color:var(--bronze);margin-bottom:1.1rem}
+.evap-stat .evap-num{font-family:'Cinzel',serif;font-weight:900;font-size:clamp(1.5rem,3vw,2.3rem);
+  line-height:1;color:var(--sand-bright);text-shadow:0 0 24px rgba(232,195,136,.3);font-variant-numeric:tabular-nums}
+.evap-stat .evap-unit{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.3em;color:var(--ash);margin-top:.6rem}
+/* burn variant */
+.evap-stat.burn{border-color:var(--blood)}
+.evap-stat.burn .evap-num{color:var(--blood-bright);text-shadow:0 0 30px rgba(184,31,23,.6)}
+.evap-stat.burn .evap-icon{filter:drop-shadow(0 0 18px rgba(184,31,23,.8));animation:flameFlick 1.6s ease-in-out infinite}
+.evap-stat.burn::before{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;
+  background:radial-gradient(ellipse at 50% 120%, rgba(184,31,23,.25), transparent 70%);pointer-events:none}
+@keyframes flameFlick{0%,100%{transform:scale(1) rotate(-2deg);opacity:.95}50%{transform:scale(1.12) rotate(2deg);opacity:1}}
+/* water variant */
+.evap-stat.water .evap-num{color:#7fc7d4;text-shadow:0 0 26px rgba(127,199,212,.4)}
+.evap-stat.water .evap-icon{filter:drop-shadow(0 0 16px rgba(127,199,212,.5))}
+.evap-stat.water::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:linear-gradient(90deg,transparent,#7fc7d4,transparent);opacity:.6}
+
+.evap-meter{position:relative;max-width:1040px;margin:2.2rem auto 0;height:34px;
+  border:1px solid #2a2118;background:rgba(8,6,4,.7);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:translateY(30px)}
+.evap-meter.in{animation:fadeUp 1s ease forwards}
+.evap-meter-fill{position:absolute;left:0;top:0;bottom:0;width:0;
+  background:linear-gradient(90deg,var(--blood),var(--blood-bright));
+  box-shadow:0 0 24px rgba(184,31,23,.7);transition:width 2.5s cubic-bezier(.2,.8,.3,1)}
+.evap-meter-cap{position:relative;z-index:2;font-family:'Cinzel',serif;font-weight:700;
+  letter-spacing:.28em;font-size:.6rem;text-transform:uppercase;color:var(--sand-bright);
+  text-shadow:0 0 8px #000}
+
+/* supply allocation graphic */
+.alloc-head{text-align:center;font-family:'Cinzel',serif;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;font-size:clamp(1rem,2.2vw,1.4rem);color:var(--sand);
+  margin:4rem 0 1.8rem;text-shadow:0 0 28px rgba(154,106,47,.3);
+  opacity:0;transform:translateY(30px)}
+.alloc-head.in{animation:fadeUp 1s ease forwards}
+.alloc-note{max-width:780px;margin:-0.6rem auto 1.8rem;text-align:center;font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:1.12rem;line-height:1.55;color:var(--bone);opacity:0;transform:translateY(24px)}
+.alloc-note.in{animation:fadeUp 1s ease forwards;opacity:.78}
+.alloc-bar{max-width:1040px;margin:0 auto 2rem;display:flex;height:54px;border:1px solid #2a2118;overflow:hidden;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.5);opacity:0;transform:translateY(30px)}
+.alloc-bar.in{animation:fadeUp 1s ease forwards}
+.alloc-seg{display:flex;align-items:center;justify-content:center;position:relative;transition:width 1.4s cubic-bezier(.2,.8,.3,1)}
+.alloc-seg span{font-family:'Cinzel',serif;font-weight:900;font-size:1.1rem;color:#0a0706;text-shadow:0 1px 0 rgba(255,255,255,.2)}
+.alloc-seg.lp{background:linear-gradient(180deg,#e8c388,#9a6a2f)}
+.alloc-seg.presale{background:linear-gradient(180deg,#6fae7a,#3a6b46)}
+.alloc-seg.presale span{color:#0a0706}
+.alloc-seg.cex{background:linear-gradient(180deg,#b98cd6,#5e3a7a)}
+.alloc-seg.cex span{color:#0a0706}
+.alloc-seg.burn{background:linear-gradient(180deg,#b81f17,#5e0f0c)}
+.alloc-seg.burn span{color:#f0d8c0;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.alloc-seg.team{background:linear-gradient(180deg,#7fc7d4,#3a7a86)}
+.alloc-seg.presale::after,.alloc-seg.cex::after,.alloc-seg.lp::after,.alloc-seg.burn::after{content:"";position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(8,6,4,.5)}
+.alloc-legend{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem}
+.alloc-legend.three{grid-template-columns:repeat(3,1fr)}
+.alloc-legend.four{grid-template-columns:repeat(4,1fr)}
+.alloc-legend.five{grid-template-columns:repeat(5,1fr)}
+.alloc-card{padding:1.8rem 1.8rem 2rem;border:1px solid #2a2118;
+  background:linear-gradient(180deg,rgba(28,24,19,.7),rgba(8,6,4,.85));
+  box-shadow:0 30px 60px -30px #000,inset 0 0 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(40px)}
+.alloc-card.in{animation:fadeUp .9s ease forwards}
+.alloc-dot{width:14px;height:14px;border-radius:50%;margin-bottom:1rem}
+.alloc-dot.lp{background:#e8c388;box-shadow:0 0 12px rgba(232,195,136,.6)}
+.alloc-dot.presale{background:#6fae7a;box-shadow:0 0 12px rgba(111,174,122,.6)}
+.alloc-dot.cex{background:#b98cd6;box-shadow:0 0 12px rgba(185,140,214,.6)}
+.alloc-dot.burn{background:#b81f17;box-shadow:0 0 12px rgba(184,31,23,.6)}
+.alloc-dot.team{background:#7fc7d4;box-shadow:0 0 12px rgba(127,199,212,.6)}
+.alloc-pct{font-family:'Cinzel',serif;font-weight:900;font-size:2.4rem;line-height:1;color:var(--sand-bright);
+  text-shadow:0 0 22px rgba(232,195,136,.25)}
+.alloc-name{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  font-size:.82rem;color:var(--bronze);margin:.7rem 0 1rem}
+.alloc-desc{font-family:'Cormorant Garamond',serif;font-size:1.18rem;line-height:1.55;color:var(--bone);opacity:.85}
+.alloc-desc strong{color:var(--blood-bright);font-weight:600}
+@media(max-width:980px){.alloc-legend.four{grid-template-columns:repeat(2,1fr)}.alloc-legend.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.alloc-legend,.alloc-legend.three,.alloc-legend.four,.alloc-legend.five{grid-template-columns:1fr}}
+
+/* buyback & burn standout callout */
+.buyback-callout{max-width:1040px;margin:2.6rem auto 0;display:flex;align-items:center;gap:1.8rem;
+  padding:2.2rem 2.4rem;position:relative;overflow:hidden;
+  background:linear-gradient(120deg,rgba(122,20,16,.35),rgba(20,12,8,.9) 60%);
+  border:1px solid var(--blood-bright);
+  box-shadow:0 0 50px rgba(184,31,23,.25), inset 0 0 60px rgba(122,20,16,.25);
+  opacity:0;transform:translateY(40px)}
+.buyback-callout.in{animation:fadeUp 1s ease forwards}
+.buyback-callout::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 0% 120%, rgba(184,31,23,.35), transparent 60%)}
+.buyback-glyph{font-size:3.4rem;flex-shrink:0;filter:drop-shadow(0 0 18px rgba(184,31,23,.8));
+  animation:flameFlick 1.6s ease-in-out infinite;position:relative;z-index:1}
+.buyback-body{position:relative;z-index:1}
+.buyback-pct{font-family:'Cinzel',serif;font-weight:900;font-size:2.8rem;line-height:1;color:var(--blood-bright);
+  text-shadow:0 0 30px rgba(184,31,23,.6);display:inline-block;margin-right:.6rem;vertical-align:-.15em}
+.buyback-title{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  font-size:1.05rem;color:var(--sand-bright);display:inline-block;text-shadow:0 0 20px rgba(232,195,136,.3)}
+.buyback-desc{font-family:'Cormorant Garamond',serif;font-size:1.22rem;line-height:1.55;color:var(--bone);opacity:.88;margin-top:.8rem}
+.buyback-desc strong{color:var(--sand-bright);font-weight:600}
+@media(max-width:600px){.buyback-callout{flex-direction:column;text-align:center;gap:1rem;padding:1.8rem 1.4rem}}
+
+/* ============ SECTION 3B: THE FORGE (TOKENOMICS) ============ */
+#forge{
+  position:relative;padding:9rem 6vw 11rem;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(154,106,47,.10), transparent 55%),
+    linear-gradient(180deg,#100a05,#0c0805);
+}
+.forge-id-grid{max-width:1040px;margin:0 auto 1.4rem;display:grid;grid-template-columns:1fr 1.6fr;gap:1.4rem}
+.forge-id{
+  position:relative;padding:1.8rem 2rem;border:1px solid #2a2118;
+  background:linear-gradient(135deg,rgba(28,24,19,.75),rgba(8,6,4,.85));
+  box-shadow:0 30px 60px -30px #000, inset 0 0 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(40px);
+}
+.forge-id.in{animation:fadeUp .9s ease forwards}
+.forge-id-label{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+  font-size:.66rem;color:var(--bronze);margin-bottom:.9rem}
+.forge-id-value{font-family:'Cinzel',serif;font-weight:700;font-size:1.3rem;color:var(--sand-bright);
+  display:flex;align-items:center;gap:.6rem}
+.bnb-mark{color:#f3ba2f;font-size:1.1rem;text-shadow:0 0 16px rgba(243,186,47,.6);transform:rotate(0deg)}
+.forge-id.contract{border-color:var(--bronze-deep)}
+.contract-val{font-family:'Spectral',monospace;font-weight:400;font-size:1rem;letter-spacing:.08em;
+  color:var(--sand);word-break:break-all;line-height:1.4;display:flex;align-items:center;gap:.9rem;flex-wrap:wrap}
+.contract-val[data-pending="false"] .ca-text{color:var(--sand-bright);font-family:'Spectral',serif}
+.ca-text{flex:1;min-width:0}
+.ca-copy{display:inline-flex;align-items:center;gap:.45rem;flex-shrink:0;
+  font-family:'Cinzel',serif;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  font-size:.58rem;color:var(--sand);background:rgba(154,106,47,.1);
+  border:1px solid var(--bronze-deep);padding:.55rem .85rem;cursor:pointer;
+  transition:color .25s,border-color .25s,background .25s;white-space:nowrap}
+.ca-copy:hover{color:var(--sand-bright);border-color:var(--bronze);background:rgba(154,106,47,.2)}
+.ca-copy:active{transform:translateY(1px)}
+.ca-copy-icon{font-size:.85rem;line-height:1}
+.ca-copy.copied{color:#7fc7d4;border-color:#7fc7d4;background:rgba(127,199,212,.12)}
+
+.tax-grid{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:1.4rem}
+.tax-card{
+  position:relative;padding:2.4rem 2rem 2.6rem;border:1px solid #2a2118;
+  background:linear-gradient(180deg,rgba(28,24,19,.75),rgba(8,6,4,.88));
+  box-shadow:0 30px 60px -30px #000, inset 0 0 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(40px);overflow:hidden;
+}
+.tax-card.in{animation:fadeUp .9s ease forwards}
+.tax-card.buy{border-top:2px solid #7fc7d4}
+.tax-card.sell{border-top:2px solid var(--blood)}
+.tax-head{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  font-size:.85rem;color:var(--sand-bright);display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem}
+.tax-glyph{font-size:1.1rem}
+.tax-card.buy .tax-glyph{filter:drop-shadow(0 0 10px rgba(127,199,212,.6))}
+.tax-card.sell .tax-glyph{filter:drop-shadow(0 0 10px rgba(184,31,23,.7))}
+.tax-total{font-family:'Cinzel',serif;font-weight:900;font-size:3rem;line-height:1;margin-bottom:1.6rem;
+  text-shadow:0 0 26px rgba(0,0,0,.5)}
+.tax-card.buy .tax-total{color:#7fc7d4;text-shadow:0 0 26px rgba(127,199,212,.35)}
+.tax-card.sell .tax-total{color:var(--blood-bright);text-shadow:0 0 28px rgba(184,31,23,.5)}
+.tax-breakdown{list-style:none;display:flex;flex-direction:column;gap:.1rem}
+.tax-breakdown li{display:flex;align-items:flex-start;gap:1rem;padding:.95rem .2rem;
+  border-bottom:1px solid rgba(42,33,24,.7)}
+.tax-breakdown li:last-child{border-bottom:none}
+.tx-pct{font-family:'Cinzel',serif;font-weight:800;font-size:1.05rem;color:var(--sand-bright);
+  min-width:2.4rem;flex-shrink:0;padding-top:.1rem;font-variant-numeric:tabular-nums}
+.tax-card.buy .tx-pct{color:#7fc7d4}
+.tax-card.sell .tx-pct{color:var(--blood-bright)}
+.tx-info{display:flex;flex-direction:column;gap:.25rem}
+.tx-name{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.06em;font-size:.92rem;color:var(--sand-bright)}
+.tx-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.02rem;line-height:1.4;color:var(--bone);opacity:.75}
+
+/* live market strip (main page) */
+/* live market bar (fixed, top-left) */
+#market-bar{position:fixed;top:12px;left:12px;z-index:9000;
+  display:inline-flex;align-items:center;gap:1.1rem;
+  max-width:calc(100vw - 24px);overflow:hidden;
+  padding:.6rem 1.1rem;
+  background:rgba(12,9,6,.96);
+  border:1px solid var(--bronze);
+  box-shadow:0 10px 28px -12px #000;}
+.market-bar-title{font-family:'Cinzel',serif;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  font-size:.66rem;color:var(--sand-bright);text-shadow:0 0 12px rgba(232,195,136,.3);
+  white-space:nowrap;flex-shrink:0;padding-right:1rem;border-right:1px solid #2a2118}
+.market-bar-stats{display:flex;align-items:center;gap:1.3rem;min-width:0}
+.mbar-stat{display:flex;flex-direction:column;gap:.2rem;align-items:flex-start;text-align:left;white-space:nowrap}
+.mbar-label{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  font-size:.56rem;color:var(--bronze)}
+.mbar-val{font-family:'Cinzel',serif;font-weight:900;font-size:1.3rem;line-height:1;color:var(--sand-bright);
+  text-shadow:0 0 14px rgba(232,195,136,.25);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mbar-sub{font-family:'Spectral',monospace;font-size:.6rem;color:var(--ash);white-space:nowrap}
+.mbar-divider{width:1px;align-self:stretch;background:#2a2118}
+.market-change{font-style:normal;font-family:'Spectral',monospace;font-size:.66rem}
+.market-change.up{color:#5fe6a0}
+.market-change.down{color:var(--blood-bright)}
+@media(max-width:1024px){
+  .market-bar-title{display:none}
+  #market-bar{gap:1rem;padding:.55rem .9rem}
+  .mbar-val{font-size:1.15rem}
+}
+@media(max-width:560px){
+  #market-bar{top:auto;bottom:10px;left:10px;gap:.8rem;padding:.5rem .7rem}
+  .market-bar-stats{gap:.85rem}
+  .mbar-val{font-size:1.05rem}
+  .mbar-label{font-size:.52rem}
+  .mbar-sub{font-size:.54rem}
+}
+
+/* ============ SECTION 4: HIERARCHY ============ */
+#hierarchy{
+  position:relative;padding:11rem 6vw 12rem;
+  background:radial-gradient(ellipse at 50% 100%, rgba(122,20,16,.16), transparent 60%),linear-gradient(180deg,#100a05,#080504);
+}
+.tier-wrap{max-width:1000px;margin:0 auto}
+.tier-track{display:flex;justify-content:space-between;position:relative;margin:0 auto 3.5rem;max-width:760px;padding:0 10px}
+.tier-track::before{content:"";position:absolute;top:14px;left:5%;right:5%;height:2px;
+  background:linear-gradient(90deg,var(--ash),var(--sand-bright));opacity:.4}
+.tier-dot{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:.7rem;
+  cursor:pointer;background:none;border:none;flex:1}
+.tier-dot .node{width:30px;height:30px;border-radius:50%;border:2px solid var(--bronze);
+  background:#0a0706;transition:.35s;box-shadow:0 0 0 0 rgba(232,195,136,0)}
+.tier-dot .lbl{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ash);transition:.3s;white-space:nowrap}
+.tier-dot.active .node{background:radial-gradient(circle,var(--sand-bright),var(--bronze));
+  border-color:var(--sand-bright);box-shadow:0 0 22px rgba(232,195,136,.7);transform:scale(1.25)}
+.tier-dot.active .lbl{color:var(--sand-bright)}
+.tier-dot:hover .lbl{color:var(--bone)}
+
+.tier-card{
+  max-width:720px;margin:0 auto;text-align:center;min-height:230px;
+  padding:3rem 2.5rem;border:1px solid #2a2118;position:relative;
+  background:linear-gradient(180deg,rgba(28,24,19,.7),rgba(8,6,4,.85));
+  box-shadow:0 30px 70px -30px #000;
+}
+.tier-card .eye{font-size:2.6rem;margin-bottom:1rem;filter:drop-shadow(0 0 16px rgba(232,195,136,.5))}
+.tier-card h3{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.05em;font-size:1.8rem;
+  color:var(--sand-bright);margin-bottom:.4rem}
+.tier-card .req{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.3em;color:var(--blood-bright);
+  text-transform:uppercase;margin-bottom:1.4rem}
+.tier-card p{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;color:var(--bone);line-height:1.5;opacity:.9}
+.tier-card.swap{animation:cardSwap .5s ease}
+@keyframes cardSwap{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ SECTION 4B: ROADMAP ============ */
+#roadmap{position:relative;padding:11rem 6vw;
+  background:radial-gradient(ellipse at 50% 0%, rgba(154,106,47,.10), transparent 55%),linear-gradient(180deg,#080504,#0c0805);}
+.road-wrap{max-width:900px;margin:0 auto;position:relative}
+.road-wrap::before{content:"";position:absolute;left:25px;top:10px;bottom:10px;width:2px;
+  background:linear-gradient(180deg,var(--bronze),rgba(154,106,47,.15));}
+.road-phase{position:relative;display:flex;gap:1.8rem;padding-left:0;margin-bottom:2.6rem;
+  opacity:0;transform:translateY(40px)}
+.road-phase.in{animation:fadeUp .9s ease forwards}
+.road-phase:last-child{margin-bottom:0}
+.road-marker{position:relative;z-index:1;flex-shrink:0;width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#241710,#0e0907);border:2px solid var(--bronze);
+  box-shadow:0 0 24px rgba(154,106,47,.35)}
+.road-marker span{font-family:'Cinzel',serif;font-weight:900;font-size:1.1rem;color:var(--sand-bright)}
+.road-body{flex:1;padding:1.6rem 2rem 1.8rem;border:1px solid #2a2118;
+  background:linear-gradient(180deg,rgba(28,24,19,.7),rgba(8,6,4,.85));
+  box-shadow:0 30px 60px -30px #000,inset 0 0 40px rgba(0,0,0,.4)}
+.road-phase-tag{font-family:'Cinzel',serif;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+  font-size:.6rem;color:var(--bronze);margin-bottom:.3rem}
+.road-title{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.04em;font-size:1.3rem;
+  color:var(--sand-bright);margin-bottom:1rem;text-shadow:0 0 20px rgba(232,195,136,.25)}
+.road-list{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.road-list li{font-family:'Cormorant Garamond',serif;font-size:1.15rem;line-height:1.4;color:var(--bone);opacity:.85;
+  padding-left:1.3rem;position:relative}
+.road-list li::before{content:"✦";position:absolute;left:0;color:var(--bronze);font-size:.8rem;top:.15rem}
+/* completed roadmap item */
+.road-list li.done{color:var(--sand-bright);opacity:1}
+.road-list li.done::before{content:"✓";color:#5fe6a0;font-weight:900;font-size:.95rem;
+  text-shadow:0 0 10px rgba(64,220,140,.6)}
+.road-list li.done{text-shadow:0 0 12px rgba(64,220,140,.12)}
+@media(max-width:600px){
+  .road-wrap::before{left:18px}
+  .road-marker{width:40px;height:40px}
+  .road-phase{gap:1rem}
+  .road-body{padding:1.3rem 1.4rem}
+}
+
+/* ============ SECTION 5: FOOTER ============ */
+#descent{
+  position:relative;padding:8rem 6vw 4rem;text-align:center;
+  background:linear-gradient(180deg,#080504,#000);
+}
+.mantra{font-family:'Cinzel',serif;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+  font-size:clamp(1.6rem,4vw,2.8rem);color:var(--sand);margin-bottom:3.5rem;
+  text-shadow:0 0 40px rgba(154,106,47,.3)}
+.foot-links{display:flex;flex-wrap:wrap;gap:.6rem 2rem;justify-content:center;align-items:center;margin-bottom:3.5rem}
+.foot-links a{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--bronze);text-decoration:none;transition:.3s;position:relative}
+.foot-links a:hover{color:var(--sand-bright);text-shadow:0 0 16px rgba(232,195,136,.5)}
+.foot-links .sep{color:#2a2118}
+.legal{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.25em;color:#4a4035;text-transform:uppercase}
+.audio-toggle{position:fixed;bottom:18px;right:18px;z-index:500;font-family:'Cinzel',serif;font-size:.55rem;
+  letter-spacing:.2em;color:var(--ash);background:rgba(10,8,6,.7);border:1px solid #2a2118;
+  padding:.6rem .9rem;cursor:pointer;text-transform:uppercase;transition:.3s}
+.audio-toggle:hover{color:var(--sand-bright);border-color:var(--bronze)}
+
+@media(max-width:760px){
+  .pillars{grid-template-columns:1fr}
+  .pillar:nth-child(2),.pillar:nth-child(3){margin-top:0}
+  .evap-grid{grid-template-columns:1fr}
+  .forge-id-grid,.tax-grid{grid-template-columns:1fr}
+  .covenant-list li{flex-direction:row}
+  .tier-dot .lbl{font-size:.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- DEV MODE banner — only shown when window.DEV_MODE is true -->
+<div id="dev-banner" hidden>⚠ DEV MODE — gate bypass active · set DEV_MODE=false before launch</div>
+
+<!-- ============ SOCIAL BAR (top-right) ============ -->
+<div id="social-bar">
+  <span class="social-heading">Join our social media for current updates!</span>
+  <div class="social-links">
+    <a class="social-link tg" id="social-tg" href="#" target="_blank" rel="noopener" aria-label="Telegram">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71l-4.14-3.05-1.99 1.93c-.23.23-.42.42-.86.42z"/></svg>
+      <span>Telegram</span>
+    </a>
+    <a class="social-link x" id="social-x" href="#" target="_blank" rel="noopener" aria-label="Twitter / X">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <span>Twitter</span>
+    </a>
+    <a class="social-link rd" id="social-rd" href="#" target="_blank" rel="noopener" aria-label="Reddit">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 0a12 12 0 100 24 12 12 0 000-24zm5.01 12.4c.07.2.11.42.11.64 0 2.2-2.56 3.98-5.72 3.98s-5.72-1.78-5.72-3.98c0-.23.04-.45.11-.66a1.27 1.27 0 01.83-2.23c.34 0 .65.13.88.35a6.97 6.97 0 013.78-1.2l.72-3.37 2.34.5a.94.94 0 11-.12.57l-2.09-.44-.63 2.97a6.96 6.96 0 013.71 1.2 1.27 1.27 0 012.04 1.01c0 .51-.3.95-.74 1.15zM8.4 12.9a.94.94 0 101.88 0 .94.94 0 00-1.88 0zm5.32 2.48c-.5.5-1.5.54-1.8.54s-1.3-.04-1.8-.54a.2.2 0 00-.28.28c.62.62 1.8.67 2.08.67.28 0 1.46-.05 2.08-.67a.2.2 0 10-.28-.28zm.06-1.54a.94.94 0 100-1.88.94.94 0 000 1.88z"/></svg>
+      <span>Reddit</span>
+    </a>
+  </div>
+</div>
+
+<!-- ============ LIVE MARKET BAR (top-left) ============ -->
+<div id="market-bar">
+  <span class="market-bar-title">The Spring — Live</span>
+  <div class="market-bar-stats">
+    <div class="mbar-stat">
+      <span class="mbar-label">Price</span>
+      <span class="mbar-val" id="mktPrice">—</span>
+      <span class="mbar-sub"><span id="mktChange" class="market-change">—</span> 24h</span>
+    </div>
+    <div class="mbar-divider"></div>
+    <div class="mbar-stat">
+      <span class="mbar-label">Mkt Cap</span>
+      <span class="mbar-val" id="mktMcap">—</span>
+      <span class="mbar-sub">valuation</span>
+    </div>
+    <div class="mbar-divider"></div>
+    <div class="mbar-stat">
+      <span class="mbar-label">Acolytes</span>
+      <span class="mbar-val" id="mktHolders">—</span>
+      <span class="mbar-sub">holders</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOP NAV MENU ============ -->
+<nav id="top-nav">
+  <button class="nav-toggle" id="navToggle" aria-label="Open menu">☰</button>
+  <div class="nav-links" id="navLinks">
+    <a href="#codex">Manifesto</a>
+    <a href="#sanctuary">Evaporation</a>
+    <a href="#forge">Tokenomics</a>
+    <a href="#hierarchy">Tiers</a>
+    <a href="#roadmap">Roadmap</a>
+    <a class="nav-audit" id="navAudit" href="#" target="_blank" rel="noopener" title="Read the audit">
+      <span class="audit-shield">🛡</span> Audit
+    </a>
+    <a class="nav-audit cert" id="navCert" href="#" target="_blank" rel="noopener" title="View the audit certificate">
+      <span class="audit-shield">📜</span> Certificate
+    </a>
+  </div>
+</nav>
+
+<!-- ============ SECTION 1: THE GATEWAY ============ -->
+<section id="gateway">
+  <div class="countdown" id="countdown">
+    <div class="countdown-label">The Gates Open In</div>
+    <div class="countdown-clock" id="countdownClock">
+      <div class="cd-unit"><span class="cd-num" id="cdDays">00</span><span class="cd-tag">Days</span></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><span class="cd-num" id="cdHours">00</span><span class="cd-tag">Hours</span></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><span class="cd-num" id="cdMins">00</span><span class="cd-tag">Minutes</span></div>
+      <div class="cd-sep">:</div>
+      <div class="cd-unit"><span class="cd-num" id="cdSecs">00</span><span class="cd-tag">Seconds</span></div>
+    </div>
+    <div class="countdown-date">July 28, 2026 · 2:00 PM UTC</div>
+  </div>
+  <div id="token-canvas"></div>
+  <div class="gateway-content">
+    <div class="eyebrow">$WATER — The Bronze Palm-Eye</div>
+    <h1 class="headline">THE DESERT<br>IS <span class="bleed">BLEEDING.</span></h1>
+    <p class="subheadline">You have survived the Wasteland. Enter the gates or perish in the sands.</p>
+    <button class="enter-btn" id="enterBtn">Connect Wallet To Enter The Oasis</button>
+  </div>
+  <div class="scroll-cue">↓ Descend ↓</div>
+</section>
+
+<!-- ============ POPUP ============ -->
+<div id="canteen-modal">
+  <div class="modal-box">
+    <div class="skull">𓂀</div>
+    <h3>YOUR CANTEEN IS EMPTY.</h3>
+    <p>Secure <b>$WATER</b> to drink from the spring.</p>
+    <button class="modal-close" id="modalClose">Return To The Sands</button>
+  </div>
+</div>
+
+<!-- ============ THE SOUL SCAN OVERLAY ============ -->
+<div id="soul-scan" aria-hidden="true">
+  <div class="scan-core">
+    <div class="radar" id="radarRing">
+      <span class="radar-sweep"></span>
+      <span class="radar-eye">𓂀</span>
+    </div>
+    <div class="scan-terminal" id="scanTerminal"></div>
+    <button class="scan-dismiss" id="scanDismiss" hidden>Return To The Sands</button>
+  </div>
+</div>
+
+<!-- ============ THE OASIS — HOLDER DASHBOARD (Path B) ============ -->
+<div id="oasis-dash" aria-hidden="true">
+  <div class="dash-bg"></div>
+  <div class="dash-inner">
+    <header class="dash-top">
+      <div class="dash-brand"><span class="dash-eye">𓂀</span> THE INNER SPRING</div>
+      <div class="dash-wallet">
+        <span class="dash-wallet-dot"></span>
+        <span id="dashAddr">0x0000…0000</span>
+        <button class="dash-exit" id="dashExit" type="button" aria-label="Leave the Oasis">⤫</button>
+      </div>
+    </header>
+
+    <div class="dash-welcome">
+      <div class="dash-rank-eye" id="dashRankEye">🗝️</div>
+      <h2 class="dash-hail">WELCOME INSIDE THE GATES, <span id="dashRankName">ACOLYTE</span>.</h2>
+      <p class="dash-sub">You have drunk from the spring. The Oasis recognizes its own.</p>
+    </div>
+
+    <!-- ACOLYTE ID CARD -->
+    <div class="dash-section-title">// Your Acolyte Credential</div>
+    <div class="acolyte-card-wrap">
+      <canvas id="acolyteCard" width="1000" height="600" class="acolyte-card"></canvas>
+      <div class="acolyte-actions">
+        <button class="acolyte-btn" id="acolyteDownload" type="button">⬇ Download Relic</button>
+        <button class="acolyte-btn ghost" id="acolyteShare" type="button">✦ Share Transmission</button>
+      </div>
+      <div class="acolyte-hint">Carry your mark into the Wasteland. Post it. Let the lost see the light.</div>
+    </div>
+
+    <!-- WALLET STATS -->
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-label">Your Reserves</div>
+        <div class="dash-card-big"><span id="dashBalance">—</span> <span class="dash-unit">$WATER</span></div>
+        <div class="dash-card-sub">≈ <span id="dashUsd">—</span> USD</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Your Rank</div>
+        <div class="dash-card-big" id="dashRankBig">—</div>
+        <div class="dash-card-sub" id="dashRankNext">—</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Share Of Supply</div>
+        <div class="dash-card-big"><span id="dashShare">—</span></div>
+        <div class="dash-card-sub">of remaining water</div>
+      </div>
+    </div>
+
+    <!-- RANK PROGRESS -->
+    <div class="dash-progress-wrap">
+      <div class="dash-progress-head">
+        <span id="dashProgFrom">The Initiated</span>
+        <span id="dashProgTo">The Sentinels</span>
+      </div>
+      <div class="dash-progress"><div class="dash-progress-fill" id="dashProgFill"></div></div>
+      <div class="dash-progress-note" id="dashProgNote">—</div>
+    </div>
+
+    <!-- LIVE BURN + SUPPLY -->
+    <div class="dash-section-title">// The Spring — Live Market</div>
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dash-card-label">Price</div>
+        <div class="dash-card-big"><span id="dashPrice">—</span></div>
+        <div class="dash-card-sub"><span id="dashChange" class="dash-change">—</span> 24h</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Market Cap</div>
+        <div class="dash-card-big" id="dashMcap">—</div>
+        <div class="dash-card-sub">fully diluted: <span id="dashFdv">—</span></div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-card-label">Acolytes (Holders)</div>
+        <div class="dash-card-big" id="dashHolders">—</div>
+        <div class="dash-card-sub">souls drinking from the spring</div>
+      </div>
+    </div>
+    <div class="dash-spark-wrap"><svg id="dashSpark" class="dash-spark" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+
+    <!-- LIVE BURN + SUPPLY -->
+    <div class="dash-section-title">// The Great Evaporation — Live</div>
+    <div class="dash-grid three">
+      <div class="dash-card mini">
+        <div class="dash-card-label">Original Supply</div>
+        <div class="dash-card-mid" id="dashOrig">100,000,000</div>
+      </div>
+      <div class="dash-card mini burn">
+        <div class="dash-card-label">Evaporated</div>
+        <div class="dash-card-mid" id="dashEvap">0</div>
+      </div>
+      <div class="dash-card mini water">
+        <div class="dash-card-label">Remaining Water</div>
+        <div class="dash-card-mid" id="dashRemain">100,000,000</div>
+      </div>
+    </div>
+    <div class="dash-meter"><div class="dash-meter-fill" id="dashMeterFill"></div><span class="dash-meter-cap" id="dashMeterCap">0.00% EVAPORATED</span></div>
+
+    <!-- RECENT BURNS FEED -->
+    <div class="dash-section-title">// The Last Drops To Evaporate</div>
+    <ul class="dash-burns" id="dashBurns">
+      <li class="dash-burn-empty">The desert is calculating…</li>
+    </ul>
+
+    <!-- GOVERNANCE PLACEHOLDER -->
+    <div class="dash-section-title">// The Nomad Council — Governance</div>
+    <div class="dash-gov">
+      <div class="dash-gov-status" id="dashGovStatus">The chamber is sealed until the Council convenes.</div>
+      <ul class="dash-gov-list" id="dashGovList">
+        <li class="dash-prop locked">
+          <div class="dash-prop-head"><span class="dash-prop-tag">SEALED</span> Direct the Marketing Reservoir</div>
+          <div class="dash-prop-desc">The collective will vote on the next campaign once governance opens.</div>
+        </li>
+        <li class="dash-prop locked">
+          <div class="dash-prop-head"><span class="dash-prop-tag">SEALED</span> Set the Burn Cadence</div>
+          <div class="dash-prop-desc">Acolytes will decide how aggressively the desert drinks.</div>
+        </li>
+        <li class="dash-prop locked">
+          <div class="dash-prop-head"><span class="dash-prop-tag">SEALED</span> Open a New Gate</div>
+          <div class="dash-prop-desc">Propose and ratify new tiers and rituals of the Oasis.</div>
+        </li>
+      </ul>
+      <div class="dash-gov-foot" id="dashGovFoot">Sentinels and Keepers will wield voting power here. Your conviction is recorded.</div>
+    </div>
+
+    <div class="dash-bottom">The Sands Remember.</div>
+  </div>
+</div>
+
+<!-- ============ SECTION 2: THE MANIFESTO ============ -->
+<section id="codex">
+  <!-- Opening declaration -->
+  <div class="manifesto-intro">
+    <h2 class="manifesto-title reveal">THE MIRAGE IS DEAD.<br><span>THE OASIS IS REAL.</span></h2>
+    <p class="manifesto-lede reveal">You are bleeding.</p>
+    <div class="manifesto-body">
+      <p class="reveal">Look around you. The crypto market is not an ecosystem; it is a lawless, scorching desert. You have spent months, perhaps years, chasing mirages. You chased the false promises of overnight gurus. You chased the hollow hype of engineered trend tokens. Each time, the heat consumed you, and the sands shifted beneath your feet.</p>
+      <p class="reveal">The outside world — <em>The Wasteland</em> — is designed to leave you parched. It thrives on your exhaustion, your desperation, and your liquidity.</p>
+      <p class="reveal">But your wandering ends today. You have stumbled upon the coordinates of the Forbidden Oasis.</p>
+      <p class="reveal accent">We did not build this place for the masses. We built it for the survivors.</p>
+    </div>
+  </div>
+
+  <!-- The Decrees (pillars) -->
+  <h3 class="section-head sub reveal"><span>//</span> Our Decrees</h3>
+  <div class="pillars">
+    <div class="pillar reveal"><span class="roman">I</span><h4>We Despise The Mirage</h4>
+      <p>We reject the short-term illusions of the desert. We do not build for days or weeks; we build for epochs. The Forbidden Oasis is an unshakeable ecosystem engineered to withstand the harshest market winters.</p></div>
+    <div class="pillar reveal"><span class="roman">II</span><h4>The Community Is The Sovereign</h4>
+      <p>In the Wasteland, you are the product. In the Oasis, you are the foundation. We are not a corporation; we are a unified collective. Every drop of water in our spring belongs to the collective strength of our Acolytes. We move as one, we hold as one, we conquer as one.</p></div>
+    <div class="pillar reveal"><span class="roman">III</span><h4>True Conviction Requires A Gate</h4>
+      <p>Exclusivity is our shield. The Oasis remains pristine because the gates are heavy. We do not beg for attention; we demand conviction. Those who seek cheap entry will find only sand. Those who sacrifice and commit will drink from the eternal spring.</p></div>
+  </div>
+
+  <!-- The Covenant -->
+  <div class="covenant reveal">
+    <h3 class="covenant-head">The Covenant Of The Spreading Vine</h3>
+    <p class="covenant-oath">To those who enter these gates, your oath is simple: <b>Protect the Spring.</b></p>
+    <ul class="covenant-list">
+      <li class="reveal"><span class="glyph">🜃</span><div><strong>When the Desert Bleeds, We Flourish.</strong> While the outside world panics over red charts, we tighten our circle and expand our roots.</div></li>
+      <li class="reveal"><span class="glyph">🜄</span><div><strong>Silence the Doubters.</strong> The Nomads of the Oasis do not argue with the blind. We let our growth speak for us.</div></li>
+      <li class="reveal"><span class="glyph">🜂</span><div><strong>Never Leave the Gates.</strong> Paper hands belong to the desert wind. True conviction stays within the walls.</div></li>
+    </ul>
+  </div>
+
+  <!-- The Ultimatum -->
+  <div class="ultimatum reveal">
+    <h3 class="ultimatum-head">The Ultimatum</h3>
+    <p>The gates are open, but they will not remain unmonitored forever.</p>
+    <p>You have two choices. You can turn back around, march back into the blinding heat of the copycat tokens, and watch your capital dry up in the sun.</p>
+    <p>Or, you can step through. You can lock your tokens, claim your title, and take your seat at the Inner Spring.</p>
+    <p class="ultimatum-tail">The heat is rising. The choice is yours.</p>
+    <div class="ultimatum-verdict">DRINK OR PERISH.</div>
+    <a class="swap-cta" id="swapCta" href="#" target="_blank" rel="noopener">💧 Secure $WATER — Drink From The Spring</a>
+  </div>
+</section>
+
+<!-- ============ SECTION 3: THE SANCTUARY ============ -->
+<section id="sanctuary">
+  <h2 class="section-head"><span>//</span> The Great Evaporation</h2>
+  <p class="evap-intro reveal">Every transaction outside these walls feeds the desert heat. When the weak hands flee, the Oasis shrinks the supply.</p>
+  <div class="evap-grid">
+    <div class="evap-stat reveal">
+      <div class="evap-icon">𓊽</div>
+      <div class="evap-label">Original Supply</div>
+      <div class="evap-num" id="origSupply">100,000,000</div>
+      <div class="evap-unit">$WATER</div>
+    </div>
+    <div class="evap-stat burn reveal">
+      <div class="evap-icon">🔥</div>
+      <div class="evap-label">Evaporated To Date</div>
+      <div class="evap-num" id="evapSupply">0</div>
+      <div class="evap-unit">$WATER</div>
+    </div>
+    <div class="evap-stat water reveal">
+      <div class="evap-icon">🌊</div>
+      <div class="evap-label">Current Remaining Water</div>
+      <div class="evap-num" id="remainSupply">100,000,000</div>
+      <div class="evap-unit">$WATER</div>
+    </div>
+  </div>
+  <div class="evap-meter reveal">
+    <div class="evap-meter-fill" id="evapMeterFill"></div>
+    <span class="evap-meter-cap" id="evapPct">0.00% EVAPORATED</span>
+  </div>
+
+  <!-- WHERE THE WATER FLOWS — supply allocation -->
+  <h3 class="alloc-head reveal">Where The Water Flows</h3>
+  <p class="alloc-note reveal">The supply flows into three reservoirs — the bulk locked into liquidity to defend the spring, a reserve held for future growth, and a fund to sustain the collective.</p>
+  <div class="alloc-bar reveal">
+    <div class="alloc-seg lp" style="width:70%"><span>70%</span></div>
+    <div class="alloc-seg cex" style="width:20%"><span>20%</span></div>
+    <div class="alloc-seg team" style="width:10%"><span>10%</span></div>
+  </div>
+  <div class="alloc-legend three">
+    <div class="alloc-card reveal">
+      <div class="alloc-dot lp"></div>
+      <div class="alloc-pct">70%</div>
+      <div class="alloc-name">Liquidity</div>
+      <div class="alloc-desc">Locked into the pool to defend the spring — the foundation of The Wall, securing the depths against the desert.</div>
+    </div>
+    <div class="alloc-card reveal">
+      <div class="alloc-dot cex"></div>
+      <div class="alloc-pct">20%</div>
+      <div class="alloc-name">Reserve Fund — Locked</div>
+      <div class="alloc-desc">Held in reserve for <strong>future liquidity adds or centralized exchange listings</strong> — locked until the Oasis is ready to expand beyond the desert.</div>
+    </div>
+    <div class="alloc-card reveal">
+      <div class="alloc-dot team"></div>
+      <div class="alloc-pct">10%</div>
+      <div class="alloc-name">The Nomad Fund</div>
+      <div class="alloc-desc"><strong>Team wallet is vested</strong> — released over time. Fuel for marketing to grow the collective and reward the faithful.</div>
+    </div>
+  </div>
+
+  <!-- BUYBACK & BURN — standout callout -->
+  <div class="buyback-callout reveal">
+    <div class="buyback-glyph">🔥</div>
+    <div class="buyback-body">
+      <div class="buyback-title">Ongoing Buyback &amp; Burn</div>
+      <div class="buyback-desc">Buybacks accrue through the <strong>marketing funds</strong> — steadily lowering the supply over time. The desert drinks slowly, tightening the spring and rewarding conviction with every wave.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 3B: THE FORGE (TOKENOMICS) ============ -->
+<section id="forge">
+  <h2 class="section-head"><span>//</span> The Forge</h2>
+
+  <div class="forge-id-grid">
+    <div class="forge-id reveal">
+      <div class="forge-id-label">Blockchain</div>
+      <div class="forge-id-value"><span class="bnb-mark">◆</span> BNB Chain</div>
+    </div>
+    <div class="forge-id contract reveal">
+      <div class="forge-id-label">Contract Address</div>
+      <!-- EDIT: set the address once below in the CONTRACT_ADDRESS variable (in the script).
+           Leave it empty ("") to keep showing PENDING. -->
+      <div class="forge-id-value contract-val" id="contractAddr">
+        <span class="ca-text" id="caText">PENDING</span>
+        <button class="ca-copy" id="caCopy" type="button" aria-label="Copy contract address" hidden>
+          <span class="ca-copy-icon">⧉</span><span class="ca-copy-label">Copy</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tax-grid">
+    <!-- BUY -->
+    <div class="tax-card buy reveal">
+      <div class="tax-head"><span class="tax-glyph">🜂</span> Buy Tax</div>
+      <div class="tax-total">4%</div>
+      <ul class="tax-breakdown">
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">BNB Reflections</span><span class="tx-desc">Receive BNB when holding 100k or more tokens for 24hrs.</span></span></li>
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">Marketing Wallet</span><span class="tx-desc">For marketing and future expansion.</span></span></li>
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">True Burn</span><span class="tx-desc">Tokens removed from the supply.</span></span></li>
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">Liquidity Add</span><span class="tx-desc">Strengthening the liquidity.</span></span></li>
+      </ul>
+    </div>
+    <!-- SELL -->
+    <div class="tax-card sell reveal">
+      <div class="tax-head"><span class="tax-glyph">🜄</span> Sell Tax</div>
+      <div class="tax-total">5%</div>
+      <ul class="tax-breakdown">
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">BNB Reflections</span><span class="tx-desc">Receive BNB when holding 100k or more tokens for 24hrs.</span></span></li>
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">Marketing Wallet</span><span class="tx-desc">For marketing and future expansion.</span></span></li>
+        <li><span class="tx-pct">1%</span><span class="tx-info"><span class="tx-name">True Burn</span><span class="tx-desc">Tokens removed from the supply.</span></span></li>
+        <li><span class="tx-pct">2%</span><span class="tx-info"><span class="tx-name">Liquidity Add</span><span class="tx-desc">Strengthening the liquidity.</span></span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4: HIERARCHY ============ -->
+<section id="hierarchy">
+  <h2 class="section-head"><span>//</span> The Hierarchy</h2>
+  <div class="tier-wrap">
+    <div class="tier-track">
+      <button class="tier-dot active" data-i="0"><span class="node"></span><span class="lbl">Wanderers</span></button>
+      <button class="tier-dot" data-i="1"><span class="node"></span><span class="lbl">Initiated</span></button>
+      <button class="tier-dot" data-i="2"><span class="node"></span><span class="lbl">Sentinels</span></button>
+      <button class="tier-dot" data-i="3"><span class="node"></span><span class="lbl">Keepers</span></button>
+    </div>
+    <div class="tier-card" id="tierCard">
+      <div class="eye">🌑</div>
+      <h3>The Wanderers</h3>
+      <div class="req">0 $WATER</div>
+      <p>Lost in the outer desert. Blind to the light.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 4B: THE ROADMAP ============ -->
+<section id="roadmap">
+  <h2 class="section-head"><span>//</span> The Pilgrimage — Roadmap</h2>
+  <div class="road-wrap">
+    <div class="road-phase reveal">
+      <div class="road-marker"><span>I</span></div>
+      <div class="road-body">
+        <div class="road-phase-tag">Phase I</div>
+        <h3 class="road-title">The Gathering</h3>
+        <ul class="road-list">
+          <li data-road="p1a">Website, Lore, and Community Channels Launched</li>
+          <li data-road="p1b">Audit Completed on Contract(Safety for investors)</li>
+          <li data-road="p1c">Community Building via Social Media Channels</li>
+          <li data-road="p1d">Pre-Launch Marketing Compaigns &amp; Partnerships </li>
+        </ul>
+      </div>
+    </div>
+    <div class="road-phase reveal">
+      <div class="road-marker"><span>II</span></div>
+      <div class="road-body">
+        <div class="road-phase-tag">Phase II</div>
+        <h3 class="road-title">The Spring Rises</h3>
+        <ul class="road-list">
+          <li data-road="p2a">Smart Contract Deployed and Verified</li>
+          <li data-road="p2b">Liquidity Added &amp; TOKEN LIVE</li>
+          <li data-road="p2c">Initial Burn Completed</li>
+          <li data-road="p2d">Liquidity Locked / Team tokens Vested </li>
+          <li data-road="p2e">First Acoylytes pass through the Gates</li>
+        </ul>
+      </div>
+    </div>
+    <div class="road-phase reveal">
+      <div class="road-marker"><span>III</span></div>
+      <div class="road-body">
+        <div class="road-phase-tag">Phase III</div>
+        <h3 class="road-title">The Expansion</h3>
+        <ul class="road-list">
+          <li data-road="p3a">Dextools &amp; Dextools listing + Trending Push </li>
+          <li data-road="p3b">Extended Marketing Push After Launch</li>
+          <li data-road="p3c">Coingecko &amp; CoinMarketCap Listings</li>
+          <li data-road="p3d">Giveways and Contents Start</li>
+        </ul>
+      </div>
+    </div>
+    <div class="road-phase reveal">
+      <div class="road-marker"><span>IV</span></div>
+      <div class="road-body">
+        <div class="road-phase-tag">Phase IV</div>
+        <h3 class="road-title">The Eternal Oasis</h3>
+        <ul class="road-list">
+          <li data-road="p4a">Centralized exchange listings</li>
+          <li data-road="p4b">Ecosystem expansion</li>
+          <li data-road="p4c">Community-led treasury &amp; initiatives</li>
+          <li data-road="p4d">The Oasis endures epochs, not weeks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECTION 5: DESCENT ============ -->
+<footer id="descent">
+  <div class="mantra reveal">The Sands Remember.</div>
+  <div class="legal">© 2026 Forbidden Oasis. All Rights Reserved To The Acylytes.</div>
+</footer>
+
+<button class="audio-toggle" id="audioToggle">⚇ Rumble: Off</button>
+
+<script>
+/* ============ FORBIDDEN OASIS — CONFIG ============ */
+/* === EDIT HERE ===
+   1. CONTRACT_ADDRESS : paste the live BNB Chain token address (0x...). Leave "" for PENDING.
+      This single value powers BOTH the copyable contract display AND the live burn tracker.
+   2. TOTAL_SUPPLY_FALLBACK : the ORIGINAL minted supply. This is the baseline the tracker
+      compares against — evaporated = this minus the contract's current totalSupply().
+      It MUST match the real launch supply for the burn numbers to be accurate.
+   3. BSC_RPC : a BNB Chain RPC endpoint. The public default works; swap for your own
+      (e.g. a paid Ankr/QuickNode URL) for higher reliability.
+   Burn model: DEFLATIONARY — the contract's True Burn destroys tokens and lowers totalSupply().
+
+   --- THE SOUL SCAN (wallet gate) ---
+   4. MIN_HOLD : minimum $WATER a wallet must hold to pass the gate (Path B = holders).
+      Below this routes to Path A (Wanderer → Manifesto + swap button).
+   5. GATE_DESTINATION : URL holders are sent to after "ACCESS GRANTED" (Discord, dashboard,
+      governance portal). Leave "" to instead fade open the gateway and reveal the page.
+   Wallet support: EVM wallets on BNB Chain (MetaMask, Coinbase, Trust, OKX, Phantom's EVM
+      mode, etc.) via window.ethereum. Solana-only wallets won't apply to a BNB token.
+*/
+const CONTRACT_ADDRESS = "";
+const TOTAL_SUPPLY_FALLBACK = 100000000;          // 100,000,000 $WATER — original minted supply
+const BSC_RPC = "https://bsc-dataseed.binance.org/";
+/* How often (ms) to re-poll the contract for live burn updates. 60000 = every 60 seconds. */
+const BURN_REFRESH_MS = 60000;
+/* Static "evaporated" number shown only if no address is set or the RPC call fails.
+   0 = pre-launch state (no burns yet): Original 100M / Evaporated 0 / Remaining 100M. */
+const EVAPORATED_FALLBACK = 0;
+/* Minimum $WATER balance required to be "Initiated" and pass the gate (Path B).
+   Holding anything below this routes the visitor to Path A (the Wanderer). */
+const MIN_HOLD = 1000;
+/* Where Path B (holders) are sent after access is granted.
+   Set to a URL (Discord invite, dashboard, gated portal) to redirect there,
+   or leave "" to simply reveal/scroll to the page content. */
+const GATE_DESTINATION = "";
+
+/* ============ LIVE DASHBOARD DATA SOURCES ============ */
+/* Price, 24h change and market cap come free from DexScreener (no key needed).
+   The two settings below power the "recent burns" feed and "holder count":
+   - BSCSCAN_API_KEY : free key from etherscan.io (Etherscan V2 covers BNB Chain, chainid 56).
+     Leave "" and the burns feed shows a graceful placeholder instead.
+   - HOLDER_COUNT : there is no reliable free API for total holder count, so set this
+     manually (check your token page on bscscan.com) or leave null to show "—".
+   - DASH_REFRESH_MS : how often the dashboard re-pulls live data while open. */
+const BSCSCAN_API_KEY = "";
+const HOLDER_COUNT = null;        // e.g. 3842  (or leave null)
+const DASH_REFRESH_MS = 45000;    // 45s
+
+/* ============ GOVERNANCE (SNAPSHOT) ============ */
+/* Snapshot.org is the standard gas-free governance tool for token communities.
+   1. Create a free space at https://snapshot.org (or snapshot.box) for your token.
+   2. Put your space id (e.g. "forbiddenoasis.eth" or "myspace.eth") below.
+   The dashboard will pull live proposals via Snapshot's public API and let
+   holders open each one to vote (signing happens securely on Snapshot).
+   Leave "" to keep the sealed placeholder proposals shown. */
+const SNAPSHOT_SPACE = "";
+
+/* ============ SOCIAL LINKS ============ */
+/* Paste your real community URLs here. These power the top-right social bar
+   AND the footer links. Leave "" and that link is hidden / inert. */
+const SOCIAL_TELEGRAM = "https://t.me/+sjy77squweUzYTYx";   // e.g. "https://t.me/yourchannel"
+const SOCIAL_TWITTER  = "https://x.com/Forbidden_Oasis";   // e.g. "https://twitter.com/yourhandle" or x.com
+const SOCIAL_REDDIT   = "";   // e.g. "https://reddit.com/r/yoursub"
+
+/* ============ AUDIT ============ */
+/* Link to your audit file (PDF or page). Opens in a new browser tab when the
+   Audit button in the top menu is clicked. Leave "" and the button stays inert. */
+const AUDIT_URL = "https://forbidden-oasis.xyz/audit.pdf";   // e.g. "https://yoursite.com/audit.pdf"
+/* Audit certificate IMAGE (opens in a new tab from the "Certificate" menu item). */
+const AUDIT_CERT_URL = "https://forbidden-oasis.xyz/certificate.jpg";   // e.g. "https://yoursite.com/audit-certificate.png"
+
+/* ============ LAUNCH COUNTDOWN ============ */
+/* Target launch time (UTC). Change this if the date/time moves.
+   Format: "YYYY-MM-DDTHH:MM:SSZ" — the Z means UTC. */
+const LAUNCH_UTC = "2026-07-28T14:00:00Z";   // July 28, 2026 · 2:00 PM UTC
+
+/* ============ ROADMAP PROGRESS ============ */
+/* Flip an item to true to show a green checkmark next to it once completed.
+   These keys match the data-road="..." on each roadmap list item. */
+const ROADMAP_DONE = {
+  // Phase I — The Gathering
+  p1a: true,   // Comunity Channels Launched
+  p1b: true,   // Contract Audit
+  p1c: true,   // Community Building
+  p1d: true,   // Pre-Launch Marketing
+  // Phase II — The Spring Rises
+  p2a: false,   // Deployed and Verified
+  p2b: false,   // LAUNCH
+  p2c: false,   // Initial Burn Completed
+  p2d: false,   // Liqudity Locked / Team Tokens Vested
+  p2e: false,  // Tokens Being Bought!
+  // Phase III — The Expansion
+  p3a: false,   // Dexctools & Descreener PAID
+  p3b: false,   // Extended Marketing Push
+  p3c: false,   // Coingecko & CoinmarketCap Listing
+  p3d: false,   // Giveaways start
+  // Phase IV — The Eternal Oasis
+  p4a: false,   // Centralized exchange listings
+  p4b: false,   // Ecosystem expansion 
+  p4c: false,   // Community-led treasury & initiatives
+  p4d: false    // The Oasis endures epochs, not weeks
+};
+
+/* ============ THREE.JS BRONZE PALM-EYE TOKEN ============ */
+(function(){
+  const mount=document.getElementById('token-canvas');
+  const scene=new THREE.Scene();
+  const W=mount.clientWidth,H=mount.clientHeight;
+  const camera=new THREE.PerspectiveCamera(40,W/H,0.1,100);camera.position.set(0,0,7);
+  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  mount.appendChild(renderer.domElement);
+
+  const token=new THREE.Group();
+
+  // coin body
+  const bronze=new THREE.MeshStandardMaterial({color:0x8a5a26,metalness:.95,roughness:.35,emissive:0x2a1607,emissiveIntensity:.3});
+  const bronzeDark=new THREE.MeshStandardMaterial({color:0x5e3d18,metalness:.9,roughness:.5});
+  const coin=new THREE.Mesh(new THREE.CylinderGeometry(2.05,2.05,0.32,72),bronze);
+  coin.rotation.x=Math.PI/2;token.add(coin);
+
+  // outer rim ring
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(2.0,0.12,20,80),bronzeDark);
+  token.add(rim);
+  const rim2=new THREE.Mesh(new THREE.TorusGeometry(1.6,0.045,16,80),bronzeDark);
+  rim2.position.z=0.001;token.add(rim2);
+
+  // ===== THE EYE (front face) =====
+  // eye almond outline (torus squashed)
+  const eyeOutline=new THREE.Mesh(new THREE.TorusGeometry(0.95,0.06,16,64),
+    new THREE.MeshStandardMaterial({color:0x3a2410,metalness:.8,roughness:.5}));
+  eyeOutline.position.z=0.17;eyeOutline.scale.set(1,0.55,1);token.add(eyeOutline);
+  // iris
+  const iris=new THREE.Mesh(new THREE.CircleGeometry(0.42,48),
+    new THREE.MeshStandardMaterial({color:0xb81f17,metalness:.6,roughness:.3,emissive:0x7a1410,emissiveIntensity:.6,side:THREE.DoubleSide}));
+  iris.position.z=0.175;token.add(iris);
+  // pupil
+  const pupil=new THREE.Mesh(new THREE.CircleGeometry(0.16,32),
+    new THREE.MeshStandardMaterial({color:0x0a0504,side:THREE.DoubleSide}));
+  pupil.position.z=0.178;token.add(pupil);
+  // glint
+  const glint=new THREE.Mesh(new THREE.CircleGeometry(0.05,16),
+    new THREE.MeshStandardMaterial({color:0xe8c388,emissive:0xe8c388,emissiveIntensity:1,side:THREE.DoubleSide}));
+  glint.position.set(0.07,0.07,0.182);token.add(glint);
+
+  // ===== PALM FRONDS rising above eye =====
+  function frond(angle,len){
+    const g=new THREE.Group();
+    const stem=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.04,len,8),bronzeDark);
+    stem.position.y=len/2;g.add(stem);
+    for(let i=0;i<6;i++){
+      const t=i/5;
+      const leaf=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.03,0.42-t*0.18,6),bronzeDark);
+      leaf.position.set(0.0,len*0.35+t*len*0.55,0);
+      leaf.rotation.z=0.9-t*0.2;leaf.geometry.translate(0,0.18,0);
+      const r=leaf.clone();r.rotation.z=-(0.9-t*0.2);
+      g.add(leaf);g.add(r);
+    }
+    g.rotation.z=angle;g.position.z=0.16;
+    return g;
+  }
+  token.add(frond(0.32,1.05));
+  token.add(frond(-0.32,1.05));
+  token.add(frond(0,1.15));
+
+  // ticker dots around rim
+  for(let i=0;i<28;i++){
+    const a=(i/28)*Math.PI*2;
+    const d=new THREE.Mesh(new THREE.SphereGeometry(0.035,8,8),bronzeDark);
+    d.position.set(Math.cos(a)*1.82,Math.sin(a)*1.82,0.17);token.add(d);
+  }
+
+  scene.add(token);
+  token.rotation.x=-0.12;
+
+  // lighting
+  scene.add(new THREE.AmbientLight(0x4a2c12,0.7));
+  const key=new THREE.DirectionalLight(0xffd9a0,1.5);key.position.set(3,4,5);scene.add(key);
+  const blood=new THREE.PointLight(0xb81f17,2.2,18);blood.position.set(-4,-2,3);scene.add(blood);
+  const rimL=new THREE.PointLight(0xe8c388,1.4,16);rimL.position.set(0,0,-4);scene.add(rimL);
+
+  let t=0;
+  function animate(){
+    requestAnimationFrame(animate);
+    t+=0.005;
+    token.rotation.y+=0.006;
+    token.rotation.x=-0.12+Math.sin(t)*0.06;
+    iris.material.emissiveIntensity=0.45+Math.sin(t*3)*0.25;
+    renderer.render(scene,camera);
+  }
+  animate();
+  window.addEventListener('resize',()=>{
+    const w=mount.clientWidth,h=mount.clientHeight;
+    camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);
+  });
+})();
+
+/* ============ RUMBLE / SHAKE ON BUTTON HOVER ============ */
+let audioCtx=null,rumbleOn=false,activeRumble=null;
+document.getElementById('audioToggle').addEventListener('click',function(){
+  rumbleOn=!rumbleOn;this.textContent='⚇ Rumble: '+(rumbleOn?'On':'Off');
+  if(rumbleOn&&!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+});
+function startRumble(){
+  if(!rumbleOn||!audioCtx)return;
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  stopRumble();
+  const osc=audioCtx.createOscillator(),g=audioCtx.createGain();
+  const lfo=audioCtx.createOscillator(),lfoG=audioCtx.createGain();
+  osc.type='sawtooth';osc.frequency.value=38;
+  lfo.frequency.value=7;lfoG.gain.value=10;
+  lfo.connect(lfoG);lfoG.connect(osc.frequency);
+  g.gain.setValueAtTime(0,audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.18,audioCtx.currentTime+0.08);
+  osc.connect(g);g.connect(audioCtx.destination);
+  osc.start();lfo.start();
+  activeRumble={osc,lfo,g};
+}
+function stopRumble(){
+  if(activeRumble){
+    try{activeRumble.g.gain.linearRampToValueAtTime(0,audioCtx.currentTime+0.12);
+    activeRumble.osc.stop(audioCtx.currentTime+0.15);activeRumble.lfo.stop(audioCtx.currentTime+0.15);}catch(e){}
+    activeRumble=null;
+  }
+}
+const enterBtn=document.getElementById('enterBtn');
+enterBtn.addEventListener('mouseenter',()=>{enterBtn.classList.add('shaking');startRumble();});
+enterBtn.addEventListener('mouseleave',()=>{enterBtn.classList.remove('shaking');stopRumble();});
+
+/* ============ THE SOUL SCAN — WALLET CONNECT FLOW ============ */
+const modal=document.getElementById('canteen-modal');
+document.getElementById('modalClose').addEventListener('click',()=>modal.classList.remove('show'));
+modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show');});
+
+(function(){
+  const overlay=document.getElementById('soul-scan');
+  const term=document.getElementById('scanTerminal');
+  const radar=document.getElementById('radarRing');
+  const dismiss=document.getElementById('scanDismiss');
+  const balanceOfABI=["function balanceOf(address) view returns (uint256)","function decimals() view returns (uint8)"];
+
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  function resetScan(){
+    term.innerHTML='';radar.className='radar';radar.id='radarRing';dismiss.hidden=true;
+  }
+  let lineDelay=0;
+  function printLine(html,cls){
+    const d=document.createElement('div');
+    d.className='line'+(cls?' '+cls:'');
+    d.style.animationDelay='0s';
+    d.innerHTML=html;
+    term.appendChild(d);
+    term.scrollTop=term.scrollHeight;
+    return d;
+  }
+  function openOverlay(){
+    resetScan();
+    overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
+    stopRumble();enterBtn.classList.remove('shaking');
+  }
+  function closeOverlay(){
+    overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');
+  }
+  dismiss.addEventListener('click',closeOverlay);
+
+  function shortAddr(a){return a.slice(0,4)+'…'+a.slice(-4);}
+
+  async function runScan(){
+    openOverlay();
+    // --- Step 1: The Soul Scan (visual hype) ---
+    printLine('<span class="tag">[ PROTOCOL ]</span> INITIALIZING PORTAL ACCESS SENTINEL…');
+    await sleep(700);
+    printLine('<span class="tag">[ SECURE ]</span> CALLING EXTENSION…');
+    await sleep(650);
+    printLine('<span class="tag">[ IDENTITY ]</span> EVALUATING SOUL… <span class="cursor">▋</span>');
+    await sleep(500);
+
+    // --- DEV MODE: skip the real wallet check and grant access with a fake balance. ---
+    if(window.DEV_MODE){
+      const devBal=Number(window.DEV_TEST_BALANCE)||0;
+      const devAddr=window.DEV_TEST_ADDRESS||'0x0000000000000000000000000000000000000000';
+      printLine('<span class="crit">[ DEV ]</span> GATE BYPASS ACTIVE — TEST BALANCE: <span class="val">'+devBal.toLocaleString('en-US')+' $WATER</span>');
+      await sleep(700);
+      if(devBal>=MIN_HOLD){
+        radar.classList.add('grant');
+        printLine('<span class="ok">[ ACCESS ]</span> GRANTED (DEV). WELCOME INSIDE THE GATES, ACOLYTE.');
+        await sleep(900);
+        routeInitiated(devAddr, devBal);
+      }else{
+        radar.classList.add('deny');
+        printLine('<span class="crit">[ DEV ]</span> TEST BALANCE BELOW GATE — ROUTING AS WANDERER.');
+        await sleep(900);
+        routeWanderer();
+      }
+      return;
+    }
+
+    // --- Detect an EVM wallet (MetaMask / Coinbase / Phantom-EVM / etc.) ---
+    const provider=window.ethereum;
+    if(!provider){
+      radar.classList.add('deny');
+      printLine('<span class="crit">[ CRITICAL ]</span> NO PORTAL EXTENSION DETECTED.');
+      printLine('<span class="tag">[ HINT ]</span> Install a BNB Chain wallet (MetaMask, Coinbase, etc.) and retry.');
+      dismiss.hidden=false;
+      return;
+    }
+
+    // --- Step 2: The Hydration Check (request accounts) ---
+    let account;
+    try{
+      const accounts=await provider.request({method:'eth_requestAccounts'});
+      account=accounts && accounts[0];
+    }catch(err){
+      radar.classList.add('deny');
+      printLine('<span class="crit">[ DENIED ]</span> SOUL REFUSED THE LINK.');
+      printLine('<span class="tag">[ STATUS ]</span> Connection cancelled at the gate.');
+      dismiss.hidden=false;
+      return;
+    }
+    if(!account){
+      radar.classList.add('deny');
+      printLine('<span class="crit">[ CRITICAL ]</span> NO WALLET RETURNED.');
+      dismiss.hidden=false;return;
+    }
+
+    printLine('<span class="ok">[ DETECTED ]</span> WALLET LINKED: <span class="val">'+shortAddr(account)+'</span>');
+    await sleep(500);
+    printLine('<span class="tag">[ ANALYSIS ]</span> CALCULATING HYDRATION LEVELS… <span class="cursor">▋</span>');
+
+    // --- Read live $WATER balance ---
+    const addr=(CONTRACT_ADDRESS||"").trim();
+    let balance=null;
+    if(addr && typeof ethers!=='undefined'){
+      try{
+        const ep=new ethers.providers.Web3Provider(provider);
+        const token=new ethers.Contract(addr,balanceOfABI,ep);
+        let decimals=18;try{decimals=await token.decimals();}catch(e){}
+        const raw=await token.balanceOf(account);
+        balance=parseFloat(ethers.utils.formatUnits(raw,decimals));
+      }catch(err){
+        console.warn('[Oasis] balance read failed:',err);
+      }
+    }
+    await sleep(700);
+
+    // --- Step 3: Conditional routing ---
+    if(balance===null){
+      // Contract not live yet / read failed — treat as Wanderer but say so honestly.
+      radar.classList.add('deny');
+      printLine('<span class="crit">[ CRITICAL ]</span> WARNING: CANTEEN IS EMPTY. YOU ARE DEHYDRATED.');
+      if(!addr) printLine('<span class="tag">[ NOTE ]</span> The spring has not yet opened. Token launching soon.');
+      await sleep(900);
+      routeWanderer();
+      return;
+    }
+
+    if(balance>=MIN_HOLD){
+      // 🟢 PATH B — Initiated / Sentinel / Keeper
+      radar.classList.remove('deny');radar.classList.add('grant');
+      printLine('<span class="ok">[ HYDRATION ]</span> RESERVES: <span class="val">'+balance.toLocaleString('en-US',{maximumFractionDigits:2})+' $WATER</span>');
+      await sleep(450);
+      printLine('<span class="ok">[ ACCESS ]</span> GRANTED. WELCOME INSIDE THE GATES, ACOLYTE.');
+      await sleep(1200);
+      routeInitiated(account, balance);
+    }else{
+      // 🔴 PATH A — The Wanderer (holds some but below threshold, or zero)
+      radar.classList.add('deny');
+      printLine('<span class="crit">[ CRITICAL ]</span> WARNING: CANTEEN IS EMPTY. YOU ARE DEHYDRATED.');
+      if(balance>0) printLine('<span class="tag">[ NOTE ]</span> Reserves of <span class="val">'+balance.toLocaleString('en-US',{maximumFractionDigits:2})+'</span> fall short of the gate ('+MIN_HOLD.toLocaleString('en-US')+').');
+      await sleep(1100);
+      routeWanderer();
+    }
+  }
+
+  function routeWanderer(){
+    closeOverlay();
+    // smooth-scroll into the Manifesto so they learn why they need the token
+    const codex=document.getElementById('codex');
+    codex.scrollIntoView({behavior:'smooth',block:'start'});
+    // draw the eye to the swap button
+    const cta=document.getElementById('swapCta');
+    setTimeout(()=>{cta.classList.add('flash');setTimeout(()=>cta.classList.remove('flash'),4500);},1400);
+  }
+
+  function routeInitiated(account, balance){
+    if((GATE_DESTINATION||"").trim()){
+      // redirect holders to the gated destination
+      window.location.href=GATE_DESTINATION.trim();
+      return;
+    }
+    closeOverlay();
+    // Hide the marketing page behind the dashboard and open The Inner Spring.
+    if(window.OasisDashboard && typeof window.OasisDashboard.open==='function'){
+      window.OasisDashboard.open(account, balance);
+    }else{
+      // Fallback: fade gateway open if dashboard module missing.
+      const gateway=document.getElementById('gateway');
+      gateway.style.transition='opacity 1s ease';gateway.style.opacity='0';
+      setTimeout(()=>{gateway.style.display='none';},950);
+    }
+  }
+
+  enterBtn.addEventListener('click',runScan);
+
+  // Show the DEV MODE warning banner whenever the bypass is active.
+  if(window.DEV_MODE){
+    const b=document.getElementById('dev-banner');
+    if(b){ b.hidden=false; document.body.style.paddingTop='2rem';
+      const sb=document.getElementById('social-bar'); if(sb) sb.style.top='2.6rem';
+      const mb=document.getElementById('market-bar'); if(mb) mb.style.top='2.6rem';
+      const tn=document.getElementById('top-nav'); if(tn) tn.style.top='2.6rem'; }
+    console.warn('[Oasis] DEV_MODE is ON — wallet gate is bypassed. Set DEV_MODE=false before launch.');
+  }
+})();
+
+/* ============ SCROLL REVEALS ============ */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach((en,i)=>{if(en.isIntersecting){
+    setTimeout(()=>en.target.classList.add('in'),(en.target.dataset.delay||0));
+    io.unobserve(en.target);
+  }});
+},{threshold:0.2});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.dataset.delay=(i%4)*120;io.observe(el);});
+
+/* ============ THE GREAT EVAPORATION — LIVE ON-CHAIN BURN TRACKER ============ */
+(function(){
+  const fmt=n=>Math.round(n).toLocaleString('en-US');
+  const origEl=document.getElementById('origSupply');
+  const evapEl=document.getElementById('evapSupply');
+  const remainEl=document.getElementById('remainSupply');
+  const fillEl=document.getElementById('evapMeterFill');
+  const pctEl=document.getElementById('evapPct');
+
+  // Minimal ERC-20 ABI: totalSupply + decimals (all we need for a deflationary burn tracker)
+  const ABI=[
+    "function totalSupply() view returns (uint256)",
+    "function decimals() view returns (uint8)"
+  ];
+
+  function countUp(el,target,dur){
+    const start=performance.now();
+    function step(now){
+      const p=Math.min((now-start)/dur,1);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=fmt(target*e);
+      if(p<1)requestAnimationFrame(step);else el.textContent=fmt(target);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function render(original,evaporated){
+    const remaining=Math.max(original-evaporated,0);
+    countUp(origEl,original,1600);
+    setTimeout(()=>countUp(evapEl,evaporated,2200),300);
+    setTimeout(()=>countUp(remainEl,remaining,2200),300);
+    const pct=original>0?(evaporated/original*100):0;
+    setTimeout(()=>{
+      fillEl.style.width=Math.min(pct,100)+'%';
+      pctEl.textContent=pct.toFixed(2)+'% EVAPORATED';
+    },700);
+  }
+
+  // Try to pull live data from the contract. Falls back to static numbers on any failure.
+  // This token uses a DEFLATIONARY True Burn: _burn() destroys tokens and lowers totalSupply().
+  // So:  remaining water = totalSupply()  |  evaporated = original supply - totalSupply()
+  async function fetchOnChain(){
+    const addr=(CONTRACT_ADDRESS||"").trim();
+    if(!addr || typeof ethers==='undefined') return null;
+    try{
+      const provider=new ethers.providers.JsonRpcProvider(BSC_RPC);
+      const token=new ethers.Contract(addr,ABI,provider);
+      let decimals=18;
+      try{ decimals=await token.decimals(); }catch(e){ /* default 18 */ }
+
+      // Current circulating supply straight from the contract (this is "remaining water").
+      const supplyBN=await token.totalSupply();
+      const toNum=bn=>parseFloat(ethers.utils.formatUnits(bn,decimals));
+      const circulating=toNum(supplyBN);
+
+      // The original minted supply is fixed and not recoverable on-chain after burns,
+      // so it comes from the config baseline.
+      const original=TOTAL_SUPPLY_FALLBACK;
+
+      // Evaporated = everything destroyed since launch.
+      const evaporated=Math.max(original-circulating,0);
+
+      // Sanity guard: if the RPC returned a bogus/zero supply, bail to fallback.
+      if(circulating<=0 || circulating>original*1.0001) return null;
+      return {original, evaporated};
+    }catch(err){
+      console.warn('[Oasis] On-chain fetch failed, using fallback:',err);
+      return null;
+    }
+  }
+
+  // Quiet refresh: short tween only if a value actually changed, no big count-up.
+  let lastEvap=null;
+  function quietUpdate(original,evaporated){
+    if(evaporated===lastEvap) return;       // nothing burned since last poll
+    const fromEvap=(lastEvap==null)?evaporated:lastEvap;
+    lastEvap=evaporated;
+    const remaining=Math.max(original-evaporated,0);
+    const fromRemain=Math.max(original-fromEvap,0);
+    tween(evapEl,fromEvap,evaporated,900);
+    tween(remainEl,fromRemain,remaining,900);
+    origEl.textContent=fmt(original);
+    const pct=original>0?(evaporated/original*100):0;
+    fillEl.style.width=Math.min(pct,100)+'%';
+    pctEl.textContent=pct.toFixed(2)+'% EVAPORATED';
+  }
+  function tween(el,from,to,dur){
+    const start=performance.now();
+    function step(now){
+      const p=Math.min((now-start)/dur,1);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=fmt(from+(to-from)*e);
+      if(p<1)requestAnimationFrame(step);else el.textContent=fmt(to);
+    }
+    requestAnimationFrame(step);
+  }
+
+  let fired=false, pollTimer=null;
+  const sanct=document.getElementById('sanctuary');
+
+  function poll(){
+    fetchOnChain().then(data=>{ if(data) quietUpdate(data.original,data.evaporated); });
+  }
+  function startPolling(){
+    if(pollTimer || !(CONTRACT_ADDRESS||"").trim()) return;
+    pollTimer=setInterval(()=>{ if(!document.hidden) poll(); }, BURN_REFRESH_MS);
+  }
+  // Pause polling while tab is hidden; refresh once on return.
+  document.addEventListener('visibilitychange',()=>{ if(!document.hidden && fired) poll(); });
+
+  const evapIO=new IntersectionObserver(es=>{
+    es.forEach(en=>{
+      if(en.isIntersecting&&!fired){
+        fired=true;
+        evapIO.disconnect();
+        // Show fallback immediately for instant drama, then refine with live data.
+        render(TOTAL_SUPPLY_FALLBACK, EVAPORATED_FALLBACK);
+        lastEvap=EVAPORATED_FALLBACK;
+        fetchOnChain().then(data=>{
+          if(data){ render(data.original, data.evaporated); lastEvap=data.evaporated; }
+          startPolling();   // begin live updates after first load
+        });
+      }
+    });
+  },{threshold:0.35});
+  evapIO.observe(sanct);
+})();
+
+/* ============ HIERARCHY SLIDER ============ */
+const tiers=[
+  {eye:'🌑',name:'The Wanderers',req:'0 $WATER',desc:'Lost in the outer desert. Blind to the light.'},
+  {eye:'🚪',name:'The Initiated',req:'1,000+ $WATER',desc:'Inside the gates. Granted access to the basic channels and alpha.'},
+  {eye:'🛡️',name:'The Sentinels',req:'10,000+ $WATER',desc:'Frontline defenders. Guardians of the spring. Gains voting power.'},
+  {eye:'🗝️',name:'The Keepers',req:'100,000+ $WATER',desc:'The Inner Council. Controls the keys to the treasury.'}
+];
+const card=document.getElementById('tierCard');
+document.querySelectorAll('.tier-dot').forEach(dot=>{
+  dot.addEventListener('click',()=>{
+    document.querySelectorAll('.tier-dot').forEach(d=>d.classList.remove('active'));
+    dot.classList.add('active');
+    const t=tiers[+dot.dataset.i];
+    card.classList.remove('swap');void card.offsetWidth;card.classList.add('swap');
+    card.innerHTML=`<div class="eye">${t.eye}</div><h3>${t.name}</h3><div class="req">${t.req}</div><p>${t.desc}</p>`;
+  });
+});
+
+/* ============ TOP-LEFT LIVE MARKET BAR ============ */
+(function(){
+  const priceEl=document.getElementById('mktPrice');
+  if(!priceEl) return;
+  const mcapEl=document.getElementById('mktMcap'), holdEl=document.getElementById('mktHolders');
+  const changeEl=document.getElementById('mktChange');
+
+  function renderMcap(m){
+    if(m==null) return '—';
+    if(m>=1e9) return '$'+(m/1e9).toFixed(2)+'B';
+    if(m>=1e6) return '$'+(m/1e6).toFixed(2)+'M';
+    if(m>=1e3) return '$'+(m/1e3).toFixed(1)+'K';
+    return '$'+m.toFixed(0);
+  }
+  function fmtPrice(p){ return p>=1 ? '$'+p.toLocaleString('en-US',{maximumFractionDigits:4}) : '$'+p.toPrecision(3); }
+
+  async function fetchMarket(addr){
+    try{
+      const res=await fetch('https://api.dexscreener.com/token-pairs/v1/bsc/'+addr);
+      if(!res.ok) return null;
+      const data=await res.json();
+      const pairs=Array.isArray(data)?data:(data.pairs||[]);
+      if(!pairs.length) return null;
+      pairs.sort((a,b)=>((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0));
+      const p=pairs[0]; const price=parseFloat(p.priceUsd);
+      if(isNaN(price)) return null;
+      return {price, change24:(p.priceChange&&typeof p.priceChange.h24!=='undefined')?parseFloat(p.priceChange.h24):null,
+        mcap:(typeof p.marketCap!=='undefined')?p.marketCap:(typeof p.fdv!=='undefined'?p.fdv:null)};
+    }catch(e){ return null; }
+  }
+
+  // Holder count: manual config (no reliable free API). Falls back to "—".
+  if(typeof HOLDER_COUNT!=='undefined' && HOLDER_COUNT!=null) holdEl.textContent=Number(HOLDER_COUNT).toLocaleString('en-US');
+
+  async function refresh(){
+    const addr=(CONTRACT_ADDRESS||"").trim();
+    if(!addr) return; // stays "—" until contract is set
+    const m=await fetchMarket(addr);
+    if(m){
+      priceEl.textContent=fmtPrice(m.price);
+      mcapEl.textContent=renderMcap(m.mcap);
+      if(m.change24!=null){ changeEl.textContent=(m.change24>=0?'+':'')+m.change24.toFixed(2)+'%'; changeEl.className='market-change '+(m.change24>=0?'up':'down'); }
+      else { changeEl.textContent='—'; changeEl.className='market-change'; }
+    }
+  }
+
+  // The bar is always visible (fixed), so fetch on load and refresh on an interval.
+  refresh();
+  setInterval(()=>{ if(!document.hidden) refresh(); }, (typeof DASH_REFRESH_MS!=='undefined'?DASH_REFRESH_MS:45000));
+})();
+
+/* ============ SOCIAL LINKS WIRING (top bar + footer) ============ */
+(function(){
+  function wire(el, url){
+    if(!el) return;
+    const u=(url||"").trim();
+    if(u){ el.href=u; el.style.display=''; }
+    else { el.removeAttribute('href'); el.addEventListener('click',e=>e.preventDefault()); }
+  }
+  // Top-right social bar
+  wire(document.getElementById('social-tg'), SOCIAL_TELEGRAM);
+  wire(document.getElementById('social-x'),  SOCIAL_TWITTER);
+  wire(document.getElementById('social-rd'), SOCIAL_REDDIT);
+
+  // Footer links (X / Twitter + Telegram); contract link handled elsewhere
+  const fx=document.getElementById('lnk-x'), ftg=document.getElementById('lnk-tg'), fca=document.getElementById('lnk-ca');
+  if(fx){ if((SOCIAL_TWITTER||"").trim()){ fx.href=SOCIAL_TWITTER.trim(); fx.target='_blank'; fx.rel='noopener'; } else fx.addEventListener('click',e=>e.preventDefault()); }
+  if(ftg){ if((SOCIAL_TELEGRAM||"").trim()){ ftg.href=SOCIAL_TELEGRAM.trim(); ftg.target='_blank'; ftg.rel='noopener'; } else ftg.addEventListener('click',e=>e.preventDefault()); }
+  if(fca) fca.addEventListener('click',e=>e.preventDefault());
+})();
+
+/* ============ TOP NAV + AUDIT WIRING ============ */
+(function(){
+  // Hamburger toggle (mobile/narrow)
+  const toggle=document.getElementById('navToggle'), links=document.getElementById('navLinks');
+  if(toggle && links){
+    toggle.addEventListener('click',()=>links.classList.toggle('open'));
+    // close menu after picking a section
+    links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>links.classList.remove('open')));
+  }
+  // Audit button → opens audit file in a new tab
+  const audit=document.getElementById('navAudit');
+  if(audit){
+    const u=(typeof AUDIT_URL!=='undefined' ? AUDIT_URL : "").trim();
+    if(u){ audit.href=u; }
+    else { audit.addEventListener('click',e=>{ e.preventDefault(); alert('Audit will be published soon.'); }); }
+  }
+  // Audit Certificate button → opens the certificate image in a new tab
+  const cert=document.getElementById('navCert');
+  if(cert){
+    const c=(typeof AUDIT_CERT_URL!=='undefined' ? AUDIT_CERT_URL : "").trim();
+    if(c){ cert.href=c; }
+    else { cert.addEventListener('click',e=>{ e.preventDefault(); alert('Audit certificate will be published soon.'); }); }
+  }
+
+  // Roadmap completion checkmarks — driven by ROADMAP_DONE config.
+  if(typeof ROADMAP_DONE!=='undefined'){
+    document.querySelectorAll('.road-list li[data-road]').forEach(li=>{
+      if(ROADMAP_DONE[li.getAttribute('data-road')]===true) li.classList.add('done');
+    });
+  }
+})();
+
+/* ============ LAUNCH COUNTDOWN ============ */
+(function(){
+  const wrap=document.getElementById('countdown');
+  if(!wrap) return;
+  const target=new Date(typeof LAUNCH_UTC!=='undefined'?LAUNCH_UTC:'2026-07-28T14:00:00Z').getTime();
+  if(isNaN(target)) return;
+  const dEl=document.getElementById('cdDays'), hEl=document.getElementById('cdHours'),
+        mEl=document.getElementById('cdMins'), sEl=document.getElementById('cdSecs');
+  const clock=document.getElementById('countdownClock');
+  const pad=n=>String(n).padStart(2,'0');
+  let timer=null;
+
+  function tick(){
+    const diff=target-Date.now();
+    if(diff<=0){
+      // Launched
+      wrap.classList.add('launched');
+      clock.innerHTML='<div class="countdown-live">𓂀 The Gates Are Open 𓂀</div>';
+      const lbl=wrap.querySelector('.countdown-label'); if(lbl) lbl.textContent='The Spring Flows';
+      if(timer) clearInterval(timer);
+      return;
+    }
+    const s=Math.floor(diff/1000);
+    dEl.textContent=pad(Math.floor(s/86400));
+    hEl.textContent=pad(Math.floor((s%86400)/3600));
+    mEl.textContent=pad(Math.floor((s%3600)/60));
+    sEl.textContent=pad(s%60);
+  }
+  tick();
+  timer=setInterval(tick,1000);
+})();
+
+/* ============ THE OASIS — HOLDER DASHBOARD MODULE ============ */
+(function(){
+  const dash=document.getElementById('oasis-dash');
+  let refreshTimer=null;
+  const $=id=>document.getElementById(id);
+
+  // Tier ladder (matches the Hierarchy section thresholds).
+  const TIERS=[
+    {name:'The Initiated', min:1000,  eye:'🚪'},
+    {name:'The Sentinels', min:10000, eye:'🛡️'},
+    {name:'The Keepers',   min:100000, eye:'🗝️'}
+  ];
+  const fmt=n=>Math.round(n).toLocaleString('en-US');
+  const fmtTok=n=>n.toLocaleString('en-US',{maximumFractionDigits:2});
+
+  function tierFor(bal){
+    let t=TIERS[0], idx=0;
+    for(let i=0;i<TIERS.length;i++){ if(bal>=TIERS[i].min){t=TIERS[i];idx=i;} }
+    return {tier:t, idx};
+  }
+
+  async function fetchMarket(addr){
+    // DexScreener public endpoint (no key). chainId 'bsc' for BNB Chain.
+    // Returns {price, change24, mcap, fdv} or null.
+    try{
+      const res=await fetch('https://api.dexscreener.com/token-pairs/v1/bsc/'+addr);
+      if(!res.ok) return null;
+      const data=await res.json();
+      const pairs=Array.isArray(data)?data:(data.pairs||[]);
+      if(!pairs.length) return null;
+      pairs.sort((a,b)=>((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0));
+      const p=pairs[0];
+      const price=parseFloat(p.priceUsd);
+      if(isNaN(price)) return null;
+      return {
+        price,
+        change24:(p.priceChange&&typeof p.priceChange.h24!=='undefined')?parseFloat(p.priceChange.h24):null,
+        mcap:(typeof p.marketCap!=='undefined')?p.marketCap:null,
+        fdv:(typeof p.fdv!=='undefined')?p.fdv:null
+      };
+    }catch(e){ return null; }
+  }
+
+  async function fetchSupply(addr){
+    if(!addr || typeof ethers==='undefined') return null;
+    try{
+      const provider=new ethers.providers.JsonRpcProvider(BSC_RPC);
+      const token=new ethers.Contract(addr,["function totalSupply() view returns (uint256)","function decimals() view returns (uint8)"],provider);
+      let dec=18;try{dec=await token.decimals();}catch(e){}
+      const s=await token.totalSupply();
+      return parseFloat(ethers.utils.formatUnits(s,dec));
+    }catch(e){ return null; }
+  }
+
+  // Recent burns: BEP-20 transfers FROM the contract TO the dead address.
+  // Uses Etherscan V2 multichain (chainid 56 = BSC). Requires a free BSCSCAN_API_KEY.
+  const DEAD="0x000000000000000000000000000000000000dead";
+  async function fetchRecentBurns(addr){
+    const key=(BSCSCAN_API_KEY||"").trim();
+    if(!addr || !key) return null;
+    try{
+      const url='https://api.etherscan.io/v2/api?chainid=56&module=account&action=tokentx'
+        +'&contractaddress='+addr+'&address='+DEAD
+        +'&page=1&offset=12&sort=desc&apikey='+key;
+      const res=await fetch(url);
+      if(!res.ok) return null;
+      const data=await res.json();
+      if(data.status!=='1' || !Array.isArray(data.result)) return null;
+      // keep only transfers INTO the dead address (i.e. burns)
+      return data.result
+        .filter(tx=>tx.to && tx.to.toLowerCase()===DEAD)
+        .map(tx=>{
+          const dec=parseInt(tx.tokenDecimal||'18',10);
+          const amt=parseFloat(tx.value)/Math.pow(10,dec);
+          return {amt, ts:parseInt(tx.timeStamp,10)*1000, hash:tx.hash};
+        });
+    }catch(e){ return null; }
+  }
+
+  function timeAgo(ms){
+    const s=Math.floor((Date.now()-ms)/1000);
+    if(s<60) return s+'s ago';
+    const m=Math.floor(s/60); if(m<60) return m+'m ago';
+    const h=Math.floor(m/60); if(h<24) return h+'h ago';
+    return Math.floor(h/24)+'d ago';
+  }
+
+  function renderBurns(burns){
+    const ul=$('dashBurns');
+    if(!burns){
+      ul.innerHTML='<li class="dash-burn-empty">'+
+        ((BSCSCAN_API_KEY||"").trim()?'No drops have evaporated yet.':'The desert is calculating… (add a BscScan/Etherscan key to reveal the burn feed)')+
+        '</li>';
+      return;
+    }
+    if(!burns.length){ ul.innerHTML='<li class="dash-burn-empty">No drops have evaporated yet.</li>'; return; }
+    ul.innerHTML=burns.map(b=>
+      '<li><span class="burn-amt">'+b.amt.toLocaleString('en-US',{maximumFractionDigits:0})+' $WATER</span>'
+      +'<span class="burn-time"><a href="https://bscscan.com/tx/'+b.hash+'" target="_blank" rel="noopener">'+timeAgo(b.ts)+' ↗</a></span></li>'
+    ).join('');
+  }
+
+  function renderMcap(m){
+    if(m==null) return '—';
+    if(m>=1e9) return '$'+(m/1e9).toFixed(2)+'B';
+    if(m>=1e6) return '$'+(m/1e6).toFixed(2)+'M';
+    if(m>=1e3) return '$'+(m/1e3).toFixed(1)+'K';
+    return '$'+m.toFixed(0);
+  }
+  function fmtPrice(p){
+    if(p>=1) return '$'+p.toLocaleString('en-US',{maximumFractionDigits:4});
+    return '$'+p.toPrecision(3);
+  }
+
+  // sparkline history accumulates from live polls (we don't have historical OHLC for free)
+  let sparkPts=[];
+  function pushSpark(price){
+    if(price==null) return;
+    sparkPts.push(price); if(sparkPts.length>40) sparkPts.shift();
+    const svg=$('dashSpark'); if(!svg) return;
+    if(sparkPts.length<2){ svg.innerHTML=''; return; }
+    const min=Math.min(...sparkPts), max=Math.max(...sparkPts), range=(max-min)||1;
+    const W=600,H=80,pad=6;
+    const pts=sparkPts.map((v,i)=>{
+      const x=(i/(sparkPts.length-1))*W;
+      const y=H-pad-((v-min)/range)*(H-pad*2);
+      return x.toFixed(1)+','+y.toFixed(1);
+    });
+    const line=pts.join(' ');
+    const area=line+' '+W+','+H+' 0,'+H;
+    svg.innerHTML='<defs><linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0%" stop-color="#e8c388"/><stop offset="100%" stop-color="#e8c388" stop-opacity="0"/></linearGradient></defs>'
+      +'<polygon class="spark-area" points="'+area+'"/>'
+      +'<polyline class="spark-line" points="'+line+'"/>';
+  }
+
+  function shortAddr(a){return a.slice(0,6)+'…'+a.slice(-4);}
+
+  async function open(account, balance){
+    const addr=(CONTRACT_ADDRESS||"").trim();
+
+    // --- Wallet + rank ---
+    $('dashAddr').textContent=shortAddr(account);
+    const {tier, idx}=tierFor(balance);
+    $('dashRankEye').textContent=tier.eye;
+    $('dashRankName').textContent=tier.name.replace('The ','').toUpperCase();
+    $('dashRankBig').textContent=tier.name;
+    $('dashBalance').textContent=fmtTok(balance);
+
+    // --- Acolyte ID card ---
+    drawAcolyteCard(account, tier, idx);
+
+    // next-tier note + progress bar
+    const next=TIERS[idx+1];
+    if(next){
+      const span=next.min-tier.min;
+      const into=balance-tier.min;
+      const pct=Math.max(0,Math.min(100,(into/span)*100));
+      $('dashProgFrom').textContent=tier.name;
+      $('dashProgTo').textContent=next.name;
+      setTimeout(()=>{$('dashProgFill').style.width=pct+'%';},200);
+      $('dashProgNote').textContent=fmtTok(next.min-balance)+' $WATER until you ascend to '+next.name+'.';
+      $('dashRankNext').textContent='→ '+fmtTok(next.min-balance)+' to '+next.name;
+    }else{
+      $('dashProgFrom').textContent='The Keepers';
+      $('dashProgTo').textContent='Inner Council';
+      setTimeout(()=>{$('dashProgFill').style.width='100%';},200);
+      $('dashProgNote').textContent='You sit at the highest gate. The keys to the treasury are yours.';
+      $('dashRankNext').textContent='Highest rank attained';
+    }
+
+    // reveal the page now (behind the dashboard)
+    const gateway=document.getElementById('gateway');
+    if(gateway) gateway.style.display='none';
+    dash.classList.add('show');dash.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+
+    // Holder count (manual config; no reliable free API for total holders)
+    $('dashHolders').textContent=(HOLDER_COUNT!=null)?Number(HOLDER_COUNT).toLocaleString('en-US'):'—';
+
+    // --- One combined live-data refresh, run now and on an interval ---
+    let lastBurnHash=null;
+    async function refresh(){
+      // Market (price / 24h / mcap) + your USD value + sparkline
+      const m=await fetchMarket(addr);
+      if(m){
+        $('dashPrice').textContent=fmtPrice(m.price);
+        $('dashUsd').textContent='$'+(balance*m.price).toLocaleString('en-US',{maximumFractionDigits:2});
+        $('dashMcap').textContent=renderMcap(m.mcap);
+        $('dashFdv').textContent=renderMcap(m.fdv);
+        const ch=$('dashChange');
+        if(m.change24!=null){
+          ch.textContent=(m.change24>=0?'+':'')+m.change24.toFixed(2)+'%';
+          ch.className='dash-change '+(m.change24>=0?'up':'down');
+        }else{ ch.textContent='—'; ch.className='dash-change'; }
+        pushSpark(m.price);
+      }else{
+        $('dashPrice').textContent='—';$('dashUsd').textContent='—';
+        $('dashMcap').textContent='—';$('dashFdv').textContent='—';
+      }
+
+      // Supply / burn data
+      let supply=await fetchSupply(addr);
+      if(supply==null) supply=TOTAL_SUPPLY_FALLBACK;
+      const original=TOTAL_SUPPLY_FALLBACK;
+      const evaporated=Math.max(original-supply,0);
+      const pct=original>0?(evaporated/original*100):0;
+      $('dashOrig').textContent=fmt(original);
+      $('dashEvap').textContent=fmt(evaporated);
+      $('dashRemain').textContent=fmt(supply);
+      $('dashMeterFill').style.width=Math.min(pct,100)+'%';
+      $('dashMeterCap').textContent=pct.toFixed(2)+'% EVAPORATED';
+      const share=supply>0?(balance/supply*100):0;
+      $('dashShare').textContent=(share<0.01?'<0.01':share.toFixed(2))+'%';
+
+      // Recent burns feed
+      const burns=await fetchRecentBurns(addr);
+      if(burns!==null){
+        renderBurns(burns);
+        if(burns.length) lastBurnHash=burns[0].hash;
+      }else if(lastBurnHash===null){
+        renderBurns(null); // show graceful placeholder once
+      }
+    }
+
+    refresh();
+    if(refreshTimer) clearInterval(refreshTimer);
+    refreshTimer=setInterval(()=>{ if(!document.hidden && dash.classList.contains('show')) refresh(); }, DASH_REFRESH_MS);
+
+    // --- Governance (Snapshot live + rank gating) ---
+    renderGovernance(idx, tier, account);
+  }
+
+  // Fetch live proposals from Snapshot's public GraphQL hub (no key needed).
+  async function fetchProposals(space){
+    if(!space) return null;
+    const query='query{proposals(first:6,skip:0,where:{space_in:["'+space+'"]},orderBy:"created",orderDirection:desc){id title state start end choices scores scores_total}}';
+    try{
+      const res=await fetch('https://hub.snapshot.org/graphql',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({query})
+      });
+      if(!res.ok) return null;
+      const data=await res.json();
+      if(!data.data || !Array.isArray(data.data.proposals)) return null;
+      return data.data.proposals;
+    }catch(e){ return null; }
+  }
+
+  function propStateTag(s){
+    if(s==='active') return '<span class="dash-prop-tag live">LIVE</span>';
+    if(s==='pending') return '<span class="dash-prop-tag">PENDING</span>';
+    return '<span class="dash-prop-tag">CLOSED</span>';
+  }
+
+  async function renderGovernance(idx, tier, account){
+    const status=$('dashGovStatus'), list=$('dashGovList'), foot=$('dashGovFoot');
+    const canVote=idx>=1; // Sentinels & Keepers
+    const space=(SNAPSHOT_SPACE||"").trim();
+
+    // Footer messaging by rank
+    if(canVote){
+      foot.textContent='Rank confirmed: '+tier.name+' — voting-eligible. Your conviction is recorded on Snapshot.';
+    }else{
+      foot.textContent='Initiates may observe. Voting power opens at the Sentinel gate (10,000+ $WATER).';
+    }
+
+    if(!space){
+      // No Snapshot space yet → keep the sealed placeholders, set status by rank.
+      status.textContent=canVote
+        ? 'You hold voting power. The chamber opens once the Council convenes its Snapshot space.'
+        : 'The chamber is sealed. Ascend to Sentinel (10,000+ $WATER) to gain voting power.';
+      return;
+    }
+
+    status.textContent='Consulting the Council…';
+    const proposals=await fetchProposals(space);
+    if(proposals===null){
+      status.textContent='The Council ledger could not be reached. Try again shortly.';
+      return;
+    }
+    if(!proposals.length){
+      status.textContent='No decrees have been raised yet. The chamber awaits its first proposal.';
+      list.innerHTML='<li class="dash-prop locked"><div class="dash-prop-head"><span class="dash-prop-tag">EMPTY</span> Awaiting the first decree</div><div class="dash-prop-desc">Propose the Oasis\u2019 first vote on Snapshot.</div></li>';
+      return;
+    }
+
+    const active=proposals.filter(p=>p.state==='active').length;
+    status.textContent=active
+      ? active+' decree'+(active>1?'s':'')+' open for the vote. '+(canVote?'Cast your conviction.':'Observe \u2014 ascend to Sentinel to vote.')
+      : 'The chamber rests. Review the Council\u2019s past decrees below.';
+
+    const base='https://snapshot.org/#/'+space+'/proposal/';
+    list.innerHTML=proposals.map(p=>{
+      const total=p.scores_total||0;
+      // leading choice
+      let lead='', leadPct=0;
+      if(Array.isArray(p.scores) && p.scores.length){
+        let mi=0; p.scores.forEach((s,i)=>{if(s>p.scores[mi])mi=i;});
+        lead=(p.choices&&p.choices[mi])||'';
+        leadPct=total>0?(p.scores[mi]/total*100):0;
+      }
+      const isLive=p.state==='active';
+      const btn=isLive
+        ? (canVote
+            ? '<a class="dash-vote-btn" href="'+base+p.id+'" target="_blank" rel="noopener">Cast Vote ↗</a>'
+            : '<span class="dash-vote-btn disabled" title="Sentinel rank required">Locked</span>')
+        : '<a class="dash-vote-btn ghost" href="'+base+p.id+'" target="_blank" rel="noopener">View ↗</a>';
+      const tally=lead
+        ? '<div class="dash-prop-tally"><div class="dash-prop-tally-bar"><span style="width:'+leadPct.toFixed(0)+'%"></span></div>'
+          +'<div class="dash-prop-tally-txt">Leading: '+esc(lead)+' · '+leadPct.toFixed(0)+'%</div></div>'
+        : '';
+      return '<li class="dash-prop'+(isLive?' live':'')+'">'
+        +'<div class="dash-prop-head">'+propStateTag(p.state)+' '+esc(p.title)+'</div>'
+        +tally
+        +'<div class="dash-prop-foot">'+btn+'</div>'
+        +'</li>';
+    }).join('');
+  }
+
+  function esc(s){return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+  /* ---- Acolyte ID card (canvas → shareable PNG) ---- */
+  let cardReady=false;
+  function drawAcolyteCard(account, tier, idx){
+    const cv=document.getElementById('acolyteCard'); if(!cv) return;
+    const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height;
+    // palette per rank
+    const accents=['#c89b5a','#7fc7d4','#5fe6a0']; // Initiated / Sentinel / Keeper
+    const accent=accents[idx]||'#c89b5a';
+    const glyphs=['🚪','🛡️','🗝️'];
+    const glyph=glyphs[idx]||'𓂀';
+    const joinDate=new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+
+    // background
+    const g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,'#0c0805'); g.addColorStop(.5,'#13100c'); g.addColorStop(1,'#080504');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // sand noise speckle
+    ctx.save();
+    for(let i=0;i<900;i++){
+      ctx.globalAlpha=Math.random()*0.05;
+      ctx.fillStyle=Math.random()>.5?'#c89b5a':'#000';
+      ctx.fillRect(Math.random()*W,Math.random()*H,1.5,1.5);
+    }
+    ctx.restore();
+    // radial accent glow top
+    const rg=ctx.createRadialGradient(W/2,0,40,W/2,0,W*0.7);
+    rg.addColorStop(0,accent+'33'); rg.addColorStop(1,'transparent');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+
+    // border frame
+    ctx.strokeStyle=accent; ctx.lineWidth=3; ctx.strokeRect(28,28,W-56,H-56);
+    ctx.strokeStyle='rgba(154,106,47,.4)'; ctx.lineWidth=1; ctx.strokeRect(40,40,W-80,H-80);
+
+    // header
+    ctx.textAlign='center';
+    ctx.fillStyle='#9a6a2f';
+    ctx.font='600 22px Cinzel, serif';
+    ctx.fillText('· FORBIDDEN OASIS ·', W/2, 92);
+    ctx.fillStyle='#7c7163';
+    ctx.font='400 15px "Spectral", monospace';
+    ctx.fillText('ACOLYTE CREDENTIAL · $WATER', W/2, 120);
+
+    // glyph
+    ctx.font='90px serif';
+    ctx.fillText(glyph, W/2, 250);
+
+    // rank name
+    ctx.fillStyle=accent;
+    ctx.font='900 56px Cinzel, serif';
+    ctx.fillText(tier.name.toUpperCase(), W/2, 330);
+
+    // divider
+    ctx.strokeStyle=accent; ctx.lineWidth=1; ctx.globalAlpha=.6;
+    ctx.beginPath(); ctx.moveTo(W/2-160,360); ctx.lineTo(W/2+160,360); ctx.stroke();
+    ctx.globalAlpha=1;
+
+    // wallet
+    ctx.fillStyle='#d8c9a8';
+    ctx.font='400 26px "Spectral", monospace';
+    const wa=account.slice(0,6)+'…'+account.slice(-4);
+    ctx.fillText(wa, W/2, 410);
+
+    // footer row: rank seal + join date
+    ctx.fillStyle='#7c7163';
+    ctx.font='600 15px Cinzel, serif';
+    ctx.textAlign='left';
+    ctx.fillText('RANK  ·  '+(idx===2?'INNER COUNCIL':idx===1?'GUARDIAN':'GATEKEPT'), 80, H-90);
+    ctx.textAlign='right';
+    ctx.fillText('PILGRIM SINCE  ·  '+joinDate.toUpperCase(), W-80, H-90);
+
+    // mantra
+    ctx.textAlign='center';
+    ctx.fillStyle=accent; ctx.globalAlpha=.85;
+    ctx.font='italic 20px "Cormorant Garamond", serif';
+    ctx.fillText('“The Sands Remember.”', W/2, H-55);
+    ctx.globalAlpha=1;
+
+    cardReady=true;
+  }
+
+  function downloadCard(){
+    const cv=document.getElementById('acolyteCard'); if(!cv||!cardReady) return;
+    try{
+      const a=document.createElement('a');
+      a.download='forbidden-oasis-acolyte.png';
+      a.href=cv.toDataURL('image/png');
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){ console.warn('[Oasis] card download failed:',e); }
+  }
+
+  async function shareCard(){
+    const cv=document.getElementById('acolyteCard'); if(!cv||!cardReady) return;
+    const text='I have drunk from the spring. Enter the Forbidden Oasis. 𓂀 $WATER';
+    // Try native share with the image where supported; fall back to X intent.
+    try{
+      if(navigator.canShare && cv.toBlob){
+        cv.toBlob(async (blob)=>{
+          const file=new File([blob],'acolyte.png',{type:'image/png'});
+          if(navigator.canShare({files:[file]})){
+            try{ await navigator.share({files:[file],text}); return; }catch(e){}
+          }
+          window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank','noopener');
+        },'image/png');
+        return;
+      }
+    }catch(e){}
+    window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text),'_blank','noopener');
+  }
+
+  (function bindCardBtns(){
+    const d=document.getElementById('acolyteDownload'), s=document.getElementById('acolyteShare');
+    if(d) d.addEventListener('click',downloadCard);
+    if(s) s.addEventListener('click',shareCard);
+  })();
+
+  function close(){
+    dash.classList.remove('show');dash.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+    if(refreshTimer){ clearInterval(refreshTimer); refreshTimer=null; }
+    const gateway=document.getElementById('gateway');
+    if(gateway) gateway.style.display='';
+  }
+  const exitBtn=$('dashExit'); if(exitBtn) exitBtn.addEventListener('click',close);
+
+  window.OasisDashboard={open, close};
+  /* DEV PREVIEW: to see the dashboard before launch, open the browser console and run:
+     OasisDashboard.open('0x7a1c4e3b9f2d8a6c5e4f1b2a3c9d8e7f60514e92', 12500)
+     (close it with OasisDashboard.close()). Remove this comment anytime. */
+})();
+
+/* ============ CONTRACT ADDRESS — COPY (revealed at launch) ============ */
+(function(){
+  const wrap=document.getElementById('contractAddr');
+  const txt=document.getElementById('caText');
+  const btn=document.getElementById('caCopy');
+  const addr=(CONTRACT_ADDRESS||"").trim();
+
+  // Launch gate: the Forge address stays PENDING until the countdown hits zero,
+  // even if the address is entered early. (Everything else using the address stays live.)
+  const launchTs=new Date(typeof LAUNCH_UTC!=='undefined'?LAUNCH_UTC:'2026-07-28T14:00:00Z').getTime();
+  const launched=()=> isNaN(launchTs) ? true : (Date.now()>=launchTs);
+
+  function showPending(){
+    txt.textContent='PENDING';
+    wrap.dataset.pending="true";
+    if(btn) btn.hidden=true;
+  }
+
+  function reveal(){
+    if(!addr){ showPending(); return; }
+    txt.textContent=addr;
+    wrap.dataset.pending="false";
+    if(btn){
+      btn.hidden=false;
+      btn.onclick=async()=>{
+        try{
+          if(navigator.clipboard&&navigator.clipboard.writeText){
+            await navigator.clipboard.writeText(addr);
+          }else{
+            const t=document.createElement('textarea');t.value=addr;t.style.position='fixed';t.style.opacity='0';
+            document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);
+          }
+          const lbl=btn.querySelector('.ca-copy-label');const orig=lbl.textContent;
+          btn.classList.add('copied');lbl.textContent='Copied';
+          setTimeout(()=>{btn.classList.remove('copied');lbl.textContent=orig;},1800);
+        }catch(e){
+          const lbl=btn.querySelector('.ca-copy-label');lbl.textContent='Copy failed';
+          setTimeout(()=>{lbl.textContent='Copy';},1800);
+        }
+      };
+    }
+  }
+
+  if(addr && launched()){
+    reveal();
+  }else if(addr && !launched()){
+    // address entered early — keep it hidden until the timer runs out, then reveal live.
+    showPending();
+    const wait=launchTs-Date.now();
+    setTimeout(reveal, Math.max(wait,0));
+  }else{
+    showPending();
+  }
+
+  // Swap button stays live whenever an address is set (independent of the launch gate).
+  const swap=document.getElementById('swapCta');
+  if(swap){
+    if(addr){
+      swap.href='https://pancakeswap.finance/swap?outputCurrency='+addr;
+    }else{
+      swap.href='#';
+      swap.addEventListener('click',e=>{
+        e.preventDefault();
+        swap.classList.add('flash');setTimeout(()=>swap.classList.remove('flash'),4500);
+      });
+    }
+  }
+})();
+</script>
+</body>
+<script>'undefined'=== typeof _trfq || (window._trfq = []);'undefined'=== typeof _trfd && (window._trfd=[]),_trfd.push({'tccl.baseHost':'secureserver.net'},{'ap':'cpsh-oh'},{'server':'p3plzcpnl509050'},{'dcenter':'p3'},{'cp_id':'10464031'},{'cp_cl':'8'}) // Monitoring performance to make your website faster. If you want to opt-out, please contact web hosting support.</script><script src='https://img1.wsimg.com/traffic-assets/js/tccl.min.js'></script></html>

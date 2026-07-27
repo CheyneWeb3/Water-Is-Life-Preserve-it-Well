@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.5 0"/></filter>
+    <linearGradient id="l" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8a1c1c"/><stop offset="50%" stop-color="#5a1010"/><stop offset="100%" stop-color="#3d0c0c"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#l)"/>
+  <rect width="256" height="256" filter="url(#n)"/>
+</svg>
