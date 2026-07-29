@@ -1,0 +1,109 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:wght@300;400;600&display=swap");
+
+:root {
+  --font-display: "Cinzel", "Times New Roman", serif;
+  --font-editorial: "Cormorant Garamond", Georgia, serif;
+  --font-data: "Spectral", Georgia, serif;
+
+  --type-hero-mobile: clamp(1.9rem, 9vw, 2.35rem);
+  --type-hero-desktop: clamp(2.9rem, 4.2vw, 4.75rem);
+
+  --type-section-mobile: 1.2rem;
+  --type-section-desktop: 1.55rem;
+
+  --type-card-mobile: 1rem;
+  --type-card-desktop: 1.15rem;
+
+  --type-body-mobile: 1.08rem;
+  --type-body-desktop: 1.18rem;
+
+  --type-metric-mobile: 1.35rem;
+  --type-metric-desktop: 1.65rem;
+
+  --type-balance-mobile: clamp(1.8rem, 8vw, 2.35rem);
+  --type-balance-desktop: clamp(2.2rem, 3vw, 3.25rem);
+}
+
+.fo-hero-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--type-hero-mobile);
+  line-height: 1;
+  letter-spacing: .015em;
+}
+
+.fo-hero-subtitle {
+  font-family: var(--font-editorial);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.fo-section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--type-section-mobile);
+  line-height: 1.15;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.fo-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--type-card-mobile);
+  letter-spacing: .045em;
+}
+
+.fo-body {
+  font-family: var(--font-editorial);
+  font-size: var(--type-body-mobile);
+  line-height: 1.55;
+}
+
+.fo-metric {
+  font-family: var(--font-data);
+  font-weight: 600;
+  font-size: var(--type-metric-mobile);
+  font-variant-numeric: tabular-nums;
+}
+
+.fo-balance {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--type-balance-mobile);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.fo-data-label {
+  font-family: var(--font-data);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.fo-wallet,
+.fo-contract,
+.fo-data {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.fo-button-label,
+.fo-nav-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 900px) {
+  .fo-hero-title { font-size: var(--type-hero-desktop); }
+  .fo-section-title { font-size: var(--type-section-desktop); }
+  .fo-card-title { font-size: var(--type-card-desktop); }
+  .fo-body { font-size: var(--type-body-desktop); }
+  .fo-metric { font-size: var(--type-metric-desktop); }
+  .fo-balance { font-size: var(--type-balance-desktop); }
+}

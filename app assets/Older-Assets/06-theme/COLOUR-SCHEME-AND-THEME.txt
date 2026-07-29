@@ -1,0 +1,151 @@
+FORBIDDEN OASIS — STAKING UI THEME
+=====================================
+
+SOURCE WEBSITE CORE PALETTE
+---------------------------
+--sand:          #C89B5A
+--sand-bright:   #E8C388
+--bronze:        #9A6A2F
+--bronze-deep:   #5E3D18
+--blood:         #7A1410
+--blood-bright:  #B81F17
+--obsidian:      #0A0807
+--obsidian-2:    #13100C
+--stone:         #1C1813
+--bone:          #D8C9A8
+--ash:           #7C7163
+
+ADDITIONAL SITE ACCENTS
+-----------------------
+BNB Gold:        #F3BA2F
+Water Cyan:      #7FC7D4
+Success Green:   #5FE6A0
+Border Stone:    #2A2118
+Deep Panel:      #080604
+Warm Panel:      #1C1813
+Dark Red Panel:  #5E0F0C
+White:           #FFFFFF
+Black:           #000000
+
+STAKING APP ROLE MAPPING
+------------------------
+Canvas/background:
+  #0A0807 / #060403 / #0C0805
+
+Primary panel:
+  linear-gradient(180deg, rgba(28,24,19,.75), rgba(8,6,4,.88))
+
+Gold border:
+  #5E3D18 default
+  #9A6A2F active
+  #E8C388 highlight
+
+Primary heading:
+  #E8C388
+
+Body text:
+  #D8C9A8
+
+Muted text:
+  #7C7163
+
+Flexible pool accent:
+  #7FC7D4
+
+Locked pool accent:
+  #B81F17
+  with warm bronze #C89B5A for labels
+
+BNB accent:
+  #F3BA2F
+
+Positive percentage / connected state:
+  #5FE6A0
+
+BUTTONS
+-------
+Gold action:
+  background: linear-gradient(180deg, #9A6A2F, #5E3D18)
+  text: #E8C388
+  border: #9A6A2F
+
+Dark action:
+  background: linear-gradient(180deg, #241710, #0E0907)
+  text: #C89B5A
+  border: #5E3D18
+
+Danger / high-emphasis compound:
+  background: linear-gradient(180deg, #7A1410, #3A0907)
+  border: #B81F17
+  text: #E8C388
+
+TYPOGRAPHY
+----------
+Display / navigation:
+  Cinzel
+  weights: 500, 600, 700, 800, 900
+
+Editorial / supporting copy:
+  Cormorant Garamond
+  regular + italic
+
+Data / utility:
+  Spectral
+  weights: 300, 400, 600
+
+Suggested app use:
+  H1 / major metric: Cinzel 700–900
+  Section heading: Cinzel 600–700, uppercase, letter-spacing .10em–.22em
+  Body: Cormorant Garamond 400–500
+  Data labels / wallet address: Spectral 400–600
+
+VISUAL LANGUAGE
+---------------
+- Ancient Egyptian / forbidden temple / desert oasis.
+- Near-black obsidian canvas with restrained bronze-gold borders.
+- Red is used for Locked, danger, sacred jewel highlights and emphasis.
+- Water/flexible state uses muted blue-cyan rather than bright Web3 neon.
+- Thin 1px borders, square/low-radius cards, engraved-frame feel.
+- Low-opacity radial glows rather than bright glassmorphism.
+- Gold should look aged and metallic, not yellow.
+- Use realistic oasis/pharaoh art as atmospheric hero art; UI must remain readable.
+- Desktop remains wide and cinematic, but follows the same component hierarchy as mobile.
+- Mobile uses single-column vault-first flow and persistent bottom navigation.
+
+SOURCE WEBSITE GRADIENT RECIPES
+-------------------------------
+Dark button:
+  linear-gradient(180deg, #241710, #0E0907)
+
+Dashboard card:
+  linear-gradient(180deg, rgba(28,24,19,.72), rgba(8,6,4,.85))
+
+Dark dashboard background:
+  radial-gradient(ellipse 70% 50% at 50% 0%, rgba(64,200,140,.10), transparent 55%),
+  radial-gradient(ellipse 90% 60% at 50% 120%, rgba(200,155,90,.10), transparent 60%),
+  linear-gradient(180deg, #060403, #0C0805 50%, #0A0706)
+
+Gateway background:
+  radial-gradient(ellipse 70% 50% at 50% 38%, rgba(122,20,16,.28), transparent 70%),
+  radial-gradient(ellipse 120% 80% at 50% 120%, rgba(200,155,90,.10), transparent 60%),
+  linear-gradient(180deg, #060403 0%, #0D0907 55%, #120B06 100%)
+
+COMMON SHADOWS
+--------------
+Deep card:
+  0 30px 60px -30px #000,
+  inset 0 0 40px rgba(0,0,0,.5)
+
+Gold glow:
+  0 0 26px rgba(232,195,136,.30)
+
+Blood glow:
+  0 0 30px rgba(184,31,23,.50)
+
+NOTES ON THIS ASSET PACK
+------------------------
+1. The supplied concept images are flattened AI-generated design mockups, not layered design source files.
+2. Cropped logos, icons, pharaoh art and backgrounds in this pack are extracted from those generated mockups.
+3. Files named "*-transparent-approx.png" use an automated near-black background removal and may require edge cleanup for production.
+4. The textures are newly generated helper assets based on the established Forbidden Oasis palette; they are not claimed as original website source layers.
+5. The original website HTML primarily uses CSS, inline SVG/data textures and rendered Three.js rather than a directory of reusable raster artwork.

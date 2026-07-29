@@ -1,0 +1,9 @@
+Fonts used by the supplied Forbidden Oasis website:
+- Cinzel: display headings, navigation, metrics, buttons
+- Cormorant Garamond: editorial/body/italic supporting copy
+- Spectral: utility text, wallet/data presentation
+
+Google Fonts import:
+https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Spectral:wght@300;400;600&display=swap
+
+Font files are intentionally NOT redistributed in this package.
