@@ -13,9 +13,9 @@ Each user receives a **permanent personal on-chain vault**. Your vault holds you
 The result is a staking system designed around the token instead of forcing the token to behave like a normal non-dividend asset.
 
 
-<img src="https://raw.githubusercontent.com/CheyneWeb3/Water-Is-Life-Preserve-it-Well/refs/heads/DevOps/readme.webp" alt="Conceptual App Idea Only" width="1100">
+<img src="https://raw.githubusercontent.com/CheyneWeb3/Water-Is-Life-Preserve-it-Well/refs/heads/DevOps/readme.webp" alt="Current Live Staking Application" width="1100">
 
-Conceptual App Idea Only
+Current Live Staking Application
 
 
 # What the Current System Does
